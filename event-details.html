@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - Music Festival Hub</title>
+    <link rel="stylesheet" href="event-details-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Logo -->
+            <div class="logo">
+                <a href="events.html">
+                    <i class="fas fa-arrow-left" style="margin-right: 12px; font-size: 1.2rem;"></i>
+                    <i class="fas fa-music"></i>
+                    <span>Music Festival Hub</span>
+                </a>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Search for Events, Artists, Venues in India" id="searchInput">
+                </div>
+                
+                <div class="city-selector">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <select id="citySelector">
+                        <option value="mumbai">Mumbai</option>
+                        <option value="delhi">Delhi</option>
+                        <option value="bangalore">Bangalore</option>
+                        <option value="pune">Pune</option>
+                        <option value="hyderabad">Hyderabad</option>
+                        <option value="chennai">Chennai</option>
+                        <option value="kolkata">Kolkata</option>
+                        <option value="ahmedabad">Ahmedabad</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- User Section -->
+            <div class="user-section">
+                <div class="user-profile" id="userProfile">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userDisplayName">Login</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Event Content -->
+        <main class="event-content">
+            <!-- Event Banner/Slider -->
+            <section class="event-banner">
+                <div class="banner-slider">
+                    <div class="banner-slide active">
+                        <img src="https://picsum.photos/1200/500?random=1" alt="Event Banner">
+                    </div>
+                    <div class="banner-slide">
+                        <img src="https://picsum.photos/1200/500?random=2" alt="Event Banner">
+                    </div>
+                    <div class="banner-slide">
+                        <img src="https://picsum.photos/1200/500?random=3" alt="Event Banner">
+                    </div>
+                </div>
+                <div class="slider-controls">
+                    <button class="prev-btn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="next-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="slider-dots">
+                    <span class="dot active" data-slide="0"></span>
+                    <span class="dot" data-slide="1"></span>
+                    <span class="dot" data-slide="2"></span>
+                </div>
+            </section>
+
+            <!-- Event Info -->
+            <section class="event-info">
+                <div class="event-header">
+                    <h1 class="event-title">Sunburn Festival 2024</h1>
+                    <div class="event-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Sat, Dec 21, 2024</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span>6:00 PM - 12:00 AM</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>NSCI Dome, Mumbai</span>
+                        </div>
+                    </div>
+                    <div class="event-tags">
+                        <span class="tag">Music Festival</span>
+                        <span class="tag">EDM</span>
+                        <span class="tag">International</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Highlighted Badges -->
+            <section class="highlighted-badges">
+                <div class="badge global-event">
+                    <i class="fas fa-globe-asia"></i>
+                    <span>Global Event</span>
+                </div>
+                <div class="badge first-time">
+                    <i class="fas fa-star"></i>
+                    <span>First Time in Your City</span>
+                </div>
+                <div class="badge diverse-lineup">
+                    <i class="fas fa-users"></i>
+                    <span>Diverse Artist Line-Up</span>
+                </div>
+            </section>
+
+            <!-- About The Event -->
+            <section class="about-event">
+                <h2>About The Event</h2>
+                <div class="event-description">
+                    <p>Sunburn Festival is India's largest electronic dance music festival and one of the biggest in Asia. This year's edition promises to be the most spectacular yet, featuring world-renowned DJs and artists from across the globe.</p>
+                    <p class="expandable-content">
+                        The festival will span over 8 hours of non-stop music with multiple stages, interactive installations, food trucks, and merchandise stalls. Experience the pulsating beats of electronic music in a vibrant atmosphere with thousands of music lovers.
+                    </p>
+                    <button class="expand-btn">Read More <i class="fas fa-chevron-down"></i></button>
+                </div>
+            </section>
+
+            <!-- You Should Know -->
+            <section class="you-should-know">
+                <h2>You Should Know</h2>
+                <div class="info-box">
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Age limit: 18+ years</li>
+                        <li><i class="fas fa-check-circle"></i> ID proof mandatory for entry</li>
+                        <li><i class="fas fa-check-circle"></i> Outside food and beverages not allowed</li>
+                        <li><i class="fas fa-check-circle"></i> No photography or recording allowed</li>
+                        <li><i class="fas fa-check-circle"></i> Strict dress code: No offensive clothing</li>
+                        <li><i class="fas fa-check-circle"></i> Security checks at entry points</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Facilities -->
+            <section class="facilities">
+                <h2>Facilities</h2>
+                <div class="facilities-grid">
+                    <div class="facility-item">
+                        <i class="fas fa-wine-bottle"></i>
+                        <span>Alcohol Served</span>
+                    </div>
+                    <div class="facility-item">
+                        <i class="fas fa-heart"></i>
+                        <span>Couple Friendly</span>
+                    </div>
+                    <div class="facility-item">
+                        <i class="fas fa-wheelchair"></i>
+                        <span>Wheelchair Accessible</span>
+                    </div>
+                    <div class="facility-item">
+                        <i class="fas fa-utensils"></i>
+                        <span>Food Court</span>
+                    </div>
+                    <div class="facility-item">
+                        <i class="fas fa-parking"></i>
+                        <span>Parking Available</span>
+                    </div>
+                    <div class="facility-item">
+                        <i class="fas fa-first-aid"></i>
+                        <span>Medical Support</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gallery -->
+            <section class="gallery">
+                <h2>Gallery</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="https://picsum.photos/300/200?random=4" alt="Gallery Image">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://picsum.photos/300/200?random=5" alt="Gallery Image">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://picsum.photos/300/200?random=6" alt="Gallery Image">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://picsum.photos/300/200?random=7" alt="Gallery Image">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://picsum.photos/300/200?random=8" alt="Gallery Image">
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://picsum.photos/300/200?random=9" alt="Gallery Image">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Offers/Sponsorship -->
+            <section class="offers">
+                <h2>Special Offers</h2>
+                <div class="offers-grid">
+                    <div class="offer-card">
+                        <img src="https://picsum.photos/400/200?random=10" alt="Travel Offer">
+                        <div class="offer-content">
+                            <h3>Travel Offer</h3>
+                            <p>Get 20% off on flights to Mumbai with our travel partner</p>
+                        </div>
+                    </div>
+                    <div class="offer-card">
+                        <img src="https://picsum.photos/400/200?random=11" alt="Hotel Offer">
+                        <div class="offer-content">
+                            <h3>Hotel Deal</h3>
+                            <p>Special rates at hotels near NSCI Dome</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Collapsible Sections -->
+            <section class="collapsible-sections">
+                <div class="collapsible-item">
+                    <div class="collapsible-header">
+                        <h3>Venue Layout</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="collapsible-content">
+                        <p>The NSCI Dome is a multi-purpose indoor stadium with a capacity of 15,000 people. The venue features:</p>
+                        <ul>
+                            <li>Main Stage with 360-degree setup</li>
+                            <li>Two secondary stages</li>
+                            <li>Food court area with 20+ vendors</li>
+                            <li>Merchandise stalls</li>
+                            <li>Restrooms and changing areas</li>
+                            <li>First aid stations</li>
+                        </ul>
+                        <img src="https://picsum.photos/800/400?random=12" alt="Venue Layout" class="venue-map">
+                    </div>
+                </div>
+
+                <div class="collapsible-item">
+                    <div class="collapsible-header">
+                        <h3>FAQs</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="faq-item">
+                            <h4>Q: What are the entry timings?</h4>
+                            <p>A: Gates open at 5:00 PM. First entry is at 6:00 PM.</p>
+                        </div>
+                        <div class="faq-item">
+                            <h4>Q: Can I bring my own food?</h4>
+                            <p>A: Outside food and beverages are not allowed. Food court available inside.</p>
+                        </div>
+                        <div class="faq-item">
+                            <h4>Q: Is parking available?</h4>
+                            <p>A: Yes, limited parking is available. We recommend using public transport.</p>
+                        </div>
+                        <div class="faq-item">
+                            <h4>Q: What is the refund policy?</h4>
+                            <p>A: All sales are final. No refunds or exchanges.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collapsible-item">
+                    <div class="collapsible-header">
+                        <h3>Terms & Conditions</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="collapsible-content">
+                        <ol>
+                            <li>Tickets are non-transferable and non-refundable.</li>
+                            <li>Entry is subject to security checks and ID verification.</li>
+                            <li>Organizers reserve the right to refuse entry without cause.</li>
+                            <li>No photography or recording allowed during the event.</li>
+                            <li>Alcohol consumption is restricted to designated areas.</li>
+                            <li>Smoking is prohibited inside the venue.</li>
+                            <li>Organizers are not responsible for personal belongings.</li>
+                            <li>Event timings and lineup are subject to change.</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Sticky Booking Box -->
+        <aside class="booking-box">
+            <div class="booking-header">
+                <h3>Event Details</h3>
+            </div>
+            <div class="booking-details">
+                <ul>
+                    <li>
+                        <span class="label">Date & Time</span>
+                        <span class="value">Sat, Dec 21, 2024 | 6:00 PM</span>
+                    </li>
+                    <li>
+                        <span class="label">Duration</span>
+                        <span class="value">8 Hours</span>
+                    </li>
+                    <li>
+                        <span class="label">Age Limit</span>
+                        <span class="value">18+ Years</span>
+                    </li>
+                    <li>
+                        <span class="label">Language</span>
+                        <span class="value">English, Hindi</span>
+                    </li>
+                    <li>
+                        <span class="label">Genre</span>
+                        <span class="value">EDM, Electronic</span>
+                    </li>
+                    <li>
+                        <span class="label">City</span>
+                        <span class="value">Mumbai</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="booking-price">
+                <div class="price-info">
+                    <span class="label">Starting Price</span>
+                    <span class="price">₹2,499</span>
+                </div>
+                <button class="book-now-btn" id="bookNowBtn" onclick="proceedToPayment()">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Book Now</span>
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Music Festival Hub</h4>
+                <p>Your one-stop destination for all music events in India.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Cancellation Policy</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Customer Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect With Us</h4>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Music Festival Hub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="ticketmaster-api-service.js"></script>
+    <script src="event-details-script.js"></script>
+    <script src="api-service.js"></script>
+    <script>
+        // Load event data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventData = JSON.parse(localStorage.getItem('selectedEvent'));
+            
+            if (eventData) {
+                // Update page title
+                document.title = `${eventData.title} - Music Festival Hub`;
+                
+                // Update event banner image
+                const bannerSlides = document.querySelectorAll('.banner-slide img');
+                bannerSlides.forEach(img => {
+                    img.src = eventData.image;
+                    img.alt = eventData.title;
+                });
+                
+                // Update event title
+                document.querySelector('.event-title').textContent = eventData.title;
+                
+                // Update event meta information
+                const metaItems = document.querySelectorAll('.meta-item span');
+                if (metaItems[0]) metaItems[0].textContent = eventData.date;
+                if (metaItems[2]) metaItems[2].textContent = eventData.venue;
+                
+                // Update event tags
+                const tagsContainer = document.querySelector('.event-tags');
+                tagsContainer.innerHTML = `
+                    <span class="tag">${eventData.category}</span>
+                    <span class="tag">Live Music</span>
+                    <span class="tag">Premium Event</span>
+                `;
+                
+                // Update about section
+                const aboutSection = document.querySelector('.event-description p');
+                if (eventData.lineup) {
+                    aboutSection.textContent = `Experience an incredible ${eventData.category.toLowerCase()} featuring ${eventData.lineup.replace('Featuring: ', '')}. This premium event promises an unforgettable musical journey with world-class production and atmosphere.`;
+                } else {
+                    aboutSection.textContent = `Join us for an amazing ${eventData.category.toLowerCase()} experience at ${eventData.venue}. This event features top-tier artists and promises an unforgettable evening of live music.`;
+                }
+                
+                // Update booking details
+                const bookingDetails = document.querySelectorAll('.booking-details .value');
+                if (bookingDetails[0]) bookingDetails[0].textContent = `${eventData.date} | 6:00 PM`;
+                if (bookingDetails[4]) bookingDetails[4].textContent = eventData.category;
+                
+                // Update price
+                document.querySelector('.price').textContent = eventData.price;
+                
+                // Update gallery images with the same event image
+                const galleryItems = document.querySelectorAll('.gallery-item img');
+                galleryItems.forEach((img, index) => {
+                    img.src = eventData.image;
+                    img.alt = `${eventData.title} Gallery ${index + 1}`;
+                });
+            }
+        });
+
+        // Function to proceed to payment
+        function proceedToPayment() {
+            const eventData = JSON.parse(localStorage.getItem('selectedEvent'));
+            if (eventData) {
+                // Store booking data for payment page
+                const bookingData = {
+                    eventTitle: eventData.title,
+                    eventDate: eventData.date,
+                    eventVenue: eventData.venue,
+                    eventImage: eventData.image,
+                    eventCategory: eventData.category,
+                    price: eventData.price,
+                    quantity: 1,
+                    totalAmount: parseInt(eventData.price.replace('₹', '').replace(',', ''))
+                };
+                localStorage.setItem('bookingData', JSON.stringify(bookingData));
+                window.location.href = 'payment.html';
+            }
+        }
+    </script>
+</body>
+</html>

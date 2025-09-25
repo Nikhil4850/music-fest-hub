@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Events Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .event-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .event-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .event-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .event-venue, .event-date {
+            margin: 4px 0;
+            color: #666;
+        }
+        .event-price {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <h1>Minimal Events Page</h1>
+    <div id="events-container">
+        <p>Loading events...</p>
+    </div>
+
+    <script src="events-api-service.js"></script>
+    <script src="events-script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('events-container');
+            
+            try {
+                console.log('Initializing minimal events page');
+                
+                // Test the API service
+                if (typeof eventsApiService === 'undefined') {
+                    throw new Error('eventsApiService is not defined');
+                }
+                
+                console.log('API service found, loading events...');
+                container.innerHTML = '<p>Loading events from API...</p>';
+                
+                // Load events
+                const eventsData = await eventsApiService.getEvents({}, 1, 10);
+                console.log('Events data:', eventsData);
+                
+                if (eventsData.events && eventsData.events.length > 0) {
+                    container.innerHTML = eventsData.events.map(event => `
+                        <div class="event-card" data-event-id="${event.id}">
+                            <div class="event-title">${event.title}</div>
+                            <div class="event-venue">${event.venue}</div>
+                            <div class="event-date">${new Date(event.date).toLocaleDateString()}</div>
+                            <div class="event-price">₹${event.price.toLocaleString('en-IN')}</div>
+                        </div>
+                    `).join('');
+                    
+                    // Add click handlers
+                    document.querySelectorAll('.event-card').forEach(card => {
+                        card.addEventListener('click', () => {
+                            const eventId = card.dataset.eventId;
+                            console.log('Clicked event:', eventId);
+                            alert(`Clicked event ${eventId}: ${card.querySelector('.event-title').textContent}`);
+                        });
+                    });
+                } else {
+                    container.innerHTML = '<p>No events found</p>';
+                }
+            } catch (error) {
+                container.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Error loading events:', error);
+            }
+        });
+    </script>
+</body>
+</html>

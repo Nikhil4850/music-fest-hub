@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Music Festival Hub</title>
+    <link rel="stylesheet" href="login-styles.css">
+    <script src="api-service.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="auth-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">Music Festival Hub</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="events.html" class="nav-link">Events</a></li>
+                <li><a href="#my-bookings" class="nav-link">My Bookings</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Video Background -->
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="https://assets.codepen.io/3364143/screen-record.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Login</button>
+            <button class="auth-tab" data-tab="register">Register</button>
+        </div>
+        
+        <div class="auth-forms">
+            <form class="auth-form login-form active" id="loginForm">
+                <h2>Welcome Back</h2>
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="loginPassword" name="password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
+                
+                <button type="submit" class="cta-button primary">
+                    <span>Login</span>
+                    <div class="button-glow"></div>
+                </button>
+            </form>
+            
+            <form class="auth-form register-form" id="registerForm">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="registerName">Full Name</label>
+                    <input type="text" id="registerName" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Account Type</label>
+                    <div class="user-type-selection">
+                        <div class="user-type-option" data-type="normal">
+                            <input type="radio" id="normalUser" name="userType" value="normal" checked>
+                            <label for="normalUser" class="user-type-card">
+                                <div class="user-type-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="user-type-info">
+                                    <h4>Normal Person</h4>
+                                    <p>Book tickets and enjoy events</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="user-type-option" data-type="creator">
+                            <input type="radio" id="creatorUser" name="userType" value="creator">
+                            <label for="creatorUser" class="user-type-card">
+                                <div class="user-type-icon">
+                                    <i class="fas fa-music"></i>
+                                </div>
+                                <div class="user-type-info">
+                                    <h4>Creator</h4>
+                                    <p>Create and manage events</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="registerPassword" name="password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="cta-button primary">
+                    <span>Create Account</span>
+                    <div class="button-glow"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Password toggle functionality
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.parentElement.querySelector('.password-toggle i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.classList.remove('fa-eye');
+                toggle.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                toggle.classList.remove('fa-eye-slash');
+                toggle.classList.add('fa-eye');
+            }
+        }
+
+        // Enhanced form validation
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function validatePassword(password) {
+            return password.length >= 6;
+        }
+
+        function showError(input, message) {
+            const formGroup = input.parentElement.classList.contains('password-input-container') 
+                ? input.parentElement.parentElement 
+                : input.parentElement;
+            
+            formGroup.classList.add('error');
+            
+            // Remove existing error message
+            const existingError = formGroup.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add new error message
+            const errorElement = document.createElement('span');
+            errorElement.className = 'error-message';
+            errorElement.textContent = message;
+            formGroup.appendChild(errorElement);
+        }
+
+        function clearError(input) {
+            const formGroup = input.parentElement.classList.contains('password-input-container') 
+                ? input.parentElement.parentElement 
+                : input.parentElement;
+            
+            formGroup.classList.remove('error');
+            const errorMessage = formGroup.querySelector('.error-message');
+            if (errorMessage) {
+                errorMessage.remove();
+            }
+        }
+
+        function showSuccessMessage(message) {
+            // Remove existing success message if any
+            const existingSuccess = document.querySelector('.success-message-banner');
+            if (existingSuccess) {
+                existingSuccess.remove();
+            }
+            
+            // Create success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message-banner';
+            successDiv.innerHTML = `
+                <div class="success-content">
+                    <i class="fas fa-check-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Add success styles
+            const successStyle = document.createElement('style');
+            successStyle.textContent = `
+                .success-message-banner {
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 10002;
+                    animation: successSlideDown 0.5s ease-out;
+                }
+                
+                .success-content {
+                    background: linear-gradient(135deg, #10b981, #059669);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 50px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+                    border: 2px solid rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(10px);
+                }
+                
+                .success-content i {
+                    font-size: 1.2rem;
+                }
+                
+                .success-content span {
+                    font-weight: 600;
+                    font-size: 0.95rem;
+                }
+                
+                @keyframes successSlideDown {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-50%) translateY(-30px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(-50%) translateY(0);
+                    }
+                }
+            `;
+            
+            if (!document.querySelector('style[data-success-styles]')) {
+                successStyle.setAttribute('data-success-styles', 'true');
+                document.head.appendChild(successStyle);
+            }
+            
+            document.body.appendChild(successDiv);
+            
+            // Auto-remove success message after 3 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.remove();
+                }
+            }, 3000);
+        }
+
+        // Login page specific JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const authTabs = document.querySelectorAll('.auth-tab');
+            const authForms = document.querySelectorAll('.auth-form');
+            
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    
+                    // Update active tab
+                    authTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show corresponding form
+                    authForms.forEach(form => {
+                        form.classList.remove('active');
+                        if (form.classList.contains(`${targetTab}-form`)) {
+                            form.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Form submissions
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                // Simple validation
+                if (email && password) {
+                    // Show loading state
+                    const loginBtn = loginForm.querySelector('.cta-button');
+                    const originalText = loginBtn.querySelector('span').textContent;
+                    loginBtn.querySelector('span').textContent = 'Signing In...';
+                    loginBtn.disabled = true;
+                    
+                    // Call API for login
+                    apiService.login({
+                        email: email,
+                        password: password
+                    }).then(response => {
+                        if (response.success) {
+                            // Reset button
+                            loginBtn.querySelector('span').textContent = originalText;
+                            loginBtn.disabled = false;
+                            
+                            // Show success message
+                            showSuccessMessage(`Welcome back! Login successful.`);
+                            
+                            // Redirect to home page
+                            setTimeout(() => {
+                                window.location.href = 'index.html';
+                            }, 1500);
+                        }
+                    }).catch(error => {
+                        // Reset button
+                        loginBtn.querySelector('span').textContent = originalText;
+                        loginBtn.disabled = false;
+                        
+                        // Show error message
+                        showError(document.getElementById('loginEmail'), error.message || 'Login failed. Please check your credentials.');
+                    });
+                }
+            });
+            
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const userType = document.querySelector('input[name="userType"]:checked').value;
+                
+                // Clear previous errors
+                document.querySelectorAll('.form-group').forEach(group => {
+                    clearError(group.querySelector('input'));
+                });
+                
+                let hasErrors = false;
+                
+                // Enhanced validation
+                if (!name.trim()) {
+                    showError(document.getElementById('registerName'), 'Full name is required');
+                    hasErrors = true;
+                }
+                
+                if (!email.trim()) {
+                    showError(document.getElementById('registerEmail'), 'Email is required');
+                    hasErrors = true;
+                } else if (!validateEmail(email)) {
+                    showError(document.getElementById('registerEmail'), 'Please enter a valid email address');
+                    hasErrors = true;
+                }
+                
+                if (!password) {
+                    showError(document.getElementById('registerPassword'), 'Password is required');
+                    hasErrors = true;
+                } else if (!validatePassword(password)) {
+                    showError(document.getElementById('registerPassword'), 'Password must be at least 6 characters long');
+                    hasErrors = true;
+                }
+                
+                if (!confirmPassword) {
+                    showError(document.getElementById('confirmPassword'), 'Please confirm your password');
+                    hasErrors = true;
+                } else if (password !== confirmPassword) {
+                    showError(document.getElementById('confirmPassword'), 'Passwords do not match');
+                    hasErrors = true;
+                }
+                
+                if (hasErrors) {
+                    return;
+                }
+                
+                // Show loading state
+                const registerBtn = registerForm.querySelector('.cta-button');
+                const originalText = registerBtn.querySelector('span').textContent;
+                registerBtn.querySelector('span').textContent = 'Creating Account...';
+                registerBtn.disabled = true;
+                registerBtn.classList.add('loading');
+                
+                // Call API for registration
+                apiService.register({
+                    name: name,
+                    email: email,
+                    password: password,
+                    userType: userType
+                }).then(response => {
+                    if (response.success) {
+                        // Reset form
+                        registerForm.reset();
+                        
+                        // Reset button
+                        registerBtn.querySelector('span').textContent = originalText;
+                        registerBtn.disabled = false;
+                        registerBtn.classList.remove('loading');
+                        
+                        // Show success message
+                        showSuccessMessage(`Welcome ${name}! Your ${userType} account has been created successfully.`);
+                        
+                        // Redirect after success message
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
+                    }
+                }).catch(error => {
+                    // Reset button
+                    registerBtn.querySelector('span').textContent = originalText;
+                    registerBtn.disabled = false;
+                    registerBtn.classList.remove('loading');
+                    
+                    // Show error message
+                    showError(document.getElementById('registerEmail'), error.message || 'Registration failed. Please try again.');
+                });
+            });
+            
+            // Mobile menu toggle
+            const navToggle = document.querySelector('.nav-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (navToggle) {
+                navToggle.addEventListener('click', () => {
+                    navMenu.classList.toggle('active');
+                });
+            }
+            
+            // Video background handling
+            const video = document.querySelector('.video-background video');
+            if (video) {
+                // Ensure video plays
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn('Video autoplay failed:', error);
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

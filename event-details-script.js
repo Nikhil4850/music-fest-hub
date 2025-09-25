@@ -1,0 +1,3532 @@
+// Event Details Page JavaScript
+
+// Ticketmaster API Configuration
+const TICKETMASTER_API_KEY = "0aCyvPIlOsSCksZLGFiTo8DGYIM1h2PC"; // Your Ticketmaster API key
+const TICKETMASTER_BASE_URL = "https://app.ticketmaster.com/discovery/v2/events.json";
+
+class EventDetailsApp {
+    constructor() {
+        this.currentSlide = 0;
+        this.slides = document.querySelectorAll('.banner-slide');
+        this.dots = document.querySelectorAll('.dot');
+        this.eventId = this.getEventIdFromUrl();
+        this.eventData = null;
+        this.useTicketmasterApi = true; // Set to true to use Ticketmaster API
+        this.init();
+    }
+
+    init() {
+        this.loadEventDetails();
+        this.setupEventListeners();
+        this.setupCollapsibleSections();
+        this.checkUserSession();
+    }
+
+    async loadEventDetails() {
+        try {
+            // Show loading state
+            this.showLoadingState();
+            
+            // First try to get static event data
+            const staticEvent = this.getStaticEventDetails(this.eventId);
+            
+            if (staticEvent) {
+                this.eventData = staticEvent;
+                this.useTicketmasterApi = false; // Use static data
+            } else if (this.useTicketmasterApi) {
+                // Fetch event data from Ticketmaster API
+                this.eventData = await this.getTicketmasterEventDetails(this.eventId);
+            } else {
+                this.eventData = await eventApiService.getEventDetails(this.eventId);
+            }
+            
+            // Populate the page with event data
+            this.populateEventDetails();
+            
+            // Setup slider after data is loaded
+            this.setupSlider();
+            
+            // Hide loading state
+            this.hideLoadingState();
+        } catch (error) {
+            console.error('Error loading event details:', error);
+            this.showErrorState('Failed to load event details. Please try again later.');
+        }
+    }
+
+    async getTicketmasterEventDetails(eventId) {
+        try {
+            const params = new URLSearchParams({
+                apikey: TICKETMASTER_API_KEY,
+                id: eventId
+            });
+            
+            const url = `${TICKETMASTER_BASE_URL}?${params}`;
+            console.log('Fetching event details from Ticketmaster API:', url);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Ticketmaster event details response:', data);
+            
+            // Transform Ticketmaster event data to our format
+            return this.transformTicketmasterEventDetails(data);
+        } catch (error) {
+            console.error('Error fetching event details from Ticketmaster:', error);
+            throw error;
+        }
+    }
+
+    transformTicketmasterEventDetails(data) {
+        if (!data || !data._embedded || !data._embedded.events || data._embedded.events.length === 0) {
+            throw new Error('No event data found');
+        }
+        
+        const tmEvent = data._embedded.events[0];
+        
+        // Extract images
+        const images = tmEvent.images ? tmEvent.images.map(img => img.url) : [];
+        
+        // Extract dates
+        const date = tmEvent.dates ? tmEvent.dates.start : {};
+        const startDate = date.dateTime || date.localDate;
+        const endDate = tmEvent.dates ? tmEvent.dates.end : {};
+        const endDateTime = endDate.dateTime || endDate.localDate;
+        
+        // Extract venue information
+        const venue = tmEvent._embedded && tmEvent._embedded.venues && tmEvent._embedded.venues[0] ? 
+            tmEvent._embedded.venues[0] : {};
+        
+        // Extract classifications (genre, subgenre, etc.)
+        const classifications = tmEvent.classifications || [];
+        const primaryClassification = classifications[0] || {};
+        const genre = primaryClassification.genre ? primaryClassification.genre.name : '';
+        const subGenre = primaryClassification.subGenre ? primaryClassification.subGenre.name : '';
+        
+        // Extract price ranges
+        const priceRanges = tmEvent.priceRanges || [];
+        const minPrice = priceRanges.length > 0 ? priceRanges[0].min : 0;
+        const maxPrice = priceRanges.length > 0 ? priceRanges[0].max : 0;
+        
+        // Extract attractions (artists/bands)
+        const attractions = tmEvent._embedded && tmEvent._embedded.attractions ? 
+            tmEvent._embedded.attractions : [];
+        const artists = attractions.map(attraction => attraction.name);
+        
+        return {
+            id: tmEvent.id,
+            title: tmEvent.name,
+            date: startDate,
+            endDate: endDateTime,
+            venue: venue.name ? `${venue.name}, ${venue.city ? venue.city.name : ''}` : '',
+            location: venue.city ? venue.city.name : '',
+            category: genre,
+            subcategory: subGenre,
+            description: tmEvent.info || tmEvent.description || tmEvent.name,
+            highlights: [
+                genre || 'Event',
+                'Live Performance',
+                'Entertainment'
+            ],
+            importantInfo: [
+                'Check venue for specific rules',
+                'Arrive early for security checks',
+                'Bring valid ID for entry'
+            ],
+            facilities: [
+                { name: 'Food Court', icon: 'fas fa-utensils' },
+                { name: 'Parking', icon: 'fas fa-parking' },
+                { name: 'Medical', icon: 'fas fa-first-aid' }
+            ],
+            images: images.slice(0, 5), // Limit to 5 images
+            gallery: images.slice(0, 10), // Limit to 10 gallery images
+            offers: [],
+            venueLayout: {
+                description: venue.name ? `Venue: ${venue.name}` : 'Venue information not available',
+                features: [
+                    'Main Event Area',
+                    'Seating Available',
+                    'Food & Beverage Outlets'
+                ],
+                mapImage: ''
+            },
+            faqs: [
+                {
+                    question: 'What time does the event start?',
+                    answer: 'Please check the event details for specific timing information.'
+                },
+                {
+                    question: 'Can I bring outside food?',
+                    answer: 'Outside food policies vary by venue. Please check venue guidelines.'
+                }
+            ],
+            terms: [
+                'Tickets are non-transferable',
+                'No refunds or exchanges',
+                'Venue rules apply'
+            ],
+            price: minPrice || 0,
+            duration: 'Event duration varies',
+            ageLimit: 'Check event details',
+            language: 'English',
+            genre: genre,
+            city: venue.city ? venue.city.name : '',
+            interestedCount: Math.floor(Math.random() * 5000) + 100
+        };
+    }
+
+    populateEventDetails() {
+        if (!this.eventData) return;
+
+        // Update banner images
+        const bannerSlides = document.querySelectorAll('.banner-slide');
+        const bannerImages = this.eventData.images || [];
+        bannerSlides.forEach((slide, index) => {
+            if (bannerImages[index]) {
+                const img = slide.querySelector('img');
+                if (img) {
+                    img.src = bannerImages[index];
+                    img.alt = `${this.eventData.title} - Image ${index + 1}`;
+                }
+            }
+        });
+
+        // Update slider dots
+        const sliderDots = document.querySelector('.slider-dots');
+        if (sliderDots && bannerImages.length > 0) {
+            sliderDots.innerHTML = '';
+            bannerImages.forEach((_, index) => {
+                const dot = document.createElement('span');
+                dot.className = `dot ${index === 0 ? 'active' : ''}`;
+                dot.dataset.slide = index;
+                sliderDots.appendChild(dot);
+            });
+            this.dots = document.querySelectorAll('.dot');
+        }
+
+        // Update event title
+        const eventTitle = document.querySelector('.event-title');
+        if (eventTitle) {
+            eventTitle.textContent = this.eventData.title;
+        }
+
+        // Update event meta
+        const eventDate = document.querySelector('.meta-item:nth-child(1) span');
+        if (eventDate && this.eventData.date) {
+            eventDate.textContent = this.formatEventDate(this.eventData.date);
+        }
+
+        const eventTime = document.querySelector('.meta-item:nth-child(2) span');
+        if (eventTime && this.eventData.date && this.eventData.endDate) {
+            eventTime.textContent = this.formatEventTime(this.eventData.date, this.eventData.endDate);
+        }
+
+        const eventVenue = document.querySelector('.meta-item:nth-child(3) span');
+        if (eventVenue) {
+            eventVenue.textContent = this.eventData.venue;
+        }
+
+        // Update event tags
+        const eventTags = document.querySelector('.event-tags');
+        if (eventTags) {
+            eventTags.innerHTML = '';
+            const tags = [this.eventData.category, this.eventData.subcategory];
+            tags.forEach(tag => {
+                if (tag) {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'tag';
+                    tagElement.textContent = tag;
+                    eventTags.appendChild(tagElement);
+                }
+            });
+        }
+
+        // Update highlighted badges
+        const badgesContainer = document.querySelector('.highlighted-badges');
+        if (badgesContainer && this.eventData.highlights) {
+            badgesContainer.innerHTML = '';
+            this.eventData.highlights.forEach((highlight, index) => {
+                const badge = document.createElement('div');
+                badge.className = 'badge';
+                
+                // Add different classes for different badge types
+                if (index === 0) badge.classList.add('global-event');
+                else if (index === 1) badge.classList.add('first-time');
+                else badge.classList.add('diverse-lineup');
+                
+                // Add appropriate icons
+                let iconClass = 'fas fa-globe-asia';
+                if (index === 1) iconClass = 'fas fa-star';
+                else if (index === 2) iconClass = 'fas fa-users';
+                
+                badge.innerHTML = `
+                    <i class="${iconClass}"></i>
+                    <span>${highlight}</span>
+                `;
+                badgesContainer.appendChild(badge);
+            });
+        }
+
+        // Update event description
+        const eventDescription = document.querySelector('.event-description p');
+        if (eventDescription) {
+            eventDescription.textContent = this.eventData.description || 'Event details not available.';
+        }
+
+        // Update important info
+        const importantInfoList = document.querySelector('.info-box ul');
+        if (importantInfoList && this.eventData.importantInfo) {
+            importantInfoList.innerHTML = '';
+            this.eventData.importantInfo.forEach(info => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>${info}</span>
+                `;
+                importantInfoList.appendChild(li);
+            });
+        }
+
+        // Update facilities
+        const facilitiesGrid = document.querySelector('.facilities-grid');
+        if (facilitiesGrid && this.eventData.facilities) {
+            facilitiesGrid.innerHTML = '';
+            this.eventData.facilities.forEach(facility => {
+                const facilityItem = document.createElement('div');
+                facilityItem.className = 'facility-item';
+                facilityItem.innerHTML = `
+                    <i class="${facility.icon}"></i>
+                    <span>${facility.name}</span>
+                `;
+                facilitiesGrid.appendChild(facilityItem);
+            });
+        }
+
+        // Update gallery
+        const galleryGrid = document.querySelector('.gallery-grid');
+        if (galleryGrid && this.eventData.gallery) {
+            galleryGrid.innerHTML = '';
+            this.eventData.gallery.forEach(image => {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+                galleryItem.innerHTML = `
+                    <img src="${image}" alt="Event gallery image">
+                `;
+                galleryGrid.appendChild(galleryItem);
+            });
+        }
+
+        // Update offers
+        const offersGrid = document.querySelector('.offers-grid');
+        if (offersGrid && this.eventData.offers) {
+            offersGrid.innerHTML = '';
+            this.eventData.offers.forEach(offer => {
+                const offerCard = document.createElement('div');
+                offerCard.className = 'offer-card';
+                offerCard.innerHTML = `
+                    <img src="${offer.image}" alt="${offer.title}">
+                    <div class="offer-content">
+                        <h3>${offer.title}</h3>
+                        <p>${offer.description}</p>
+                    </div>
+                `;
+                offersGrid.appendChild(offerCard);
+            });
+        }
+
+        // Update venue layout
+        const venueContent = document.querySelector('.collapsible-item:nth-child(1) .collapsible-content');
+        if (venueContent && this.eventData.venueLayout) {
+            venueContent.innerHTML = `
+                <p>${this.eventData.venueLayout.description}</p>
+                <ul>
+                    ${this.eventData.venueLayout.features.map(feature => `<li>${feature}</li>`).join('')}
+                </ul>
+                ${this.eventData.venueLayout.mapImage ? `<img src="${this.eventData.venueLayout.mapImage}" alt="Venue Layout" class="venue-map">` : ''}
+            `;
+        }
+
+        // Update FAQs
+        const faqsContent = document.querySelector('.collapsible-item:nth-child(2) .collapsible-content');
+        if (faqsContent && this.eventData.faqs) {
+            faqsContent.innerHTML = '';
+            this.eventData.faqs.forEach(faq => {
+                const faqItem = document.createElement('div');
+                faqItem.className = 'faq-item';
+                faqItem.innerHTML = `
+                    <h4>Q: ${faq.question}</h4>
+                    <p>A: ${faq.answer}</p>
+                `;
+                faqsContent.appendChild(faqItem);
+            });
+        }
+
+        // Update Terms & Conditions
+        const termsContent = document.querySelector('.collapsible-item:nth-child(3) .collapsible-content');
+        if (termsContent && this.eventData.terms) {
+            termsContent.innerHTML = `
+                <ol>
+                    ${this.eventData.terms.map(term => `<li>${term}</li>`).join('')}
+                </ol>
+            `;
+        }
+
+        // Update booking box details
+        this.updateBookingBox();
+    }
+
+    updateBookingBox() {
+        if (!this.eventData) return;
+
+        // Update booking details
+        const dateElements = document.querySelectorAll('.value');
+        if (dateElements.length > 0 && this.eventData.date) {
+            dateElements[0].textContent = 
+                this.formatEventDate(this.eventData.date) + ' | ' + 
+                this.formatEventTimeOnly(this.eventData.date);
+        }
+        
+        if (dateElements.length > 1) {
+            dateElements[1].textContent = this.eventData.duration || 'Event duration varies';
+        }
+        
+        if (dateElements.length > 2) {
+            dateElements[2].textContent = this.eventData.ageLimit || 'Check event details';
+        }
+        
+        if (dateElements.length > 3) {
+            dateElements[3].textContent = this.eventData.language || 'English';
+        }
+        
+        if (dateElements.length > 4) {
+            dateElements[4].textContent = this.eventData.genre || 'Event';
+        }
+        
+        if (dateElements.length > 5) {
+            dateElements[5].textContent = this.eventData.city || 'Location not specified';
+        }
+        
+        // Update price
+        const priceElement = document.querySelector('.price');
+        if (priceElement) {
+            priceElement.textContent = 
+                '₹' + (this.eventData.price ? this.eventData.price.toLocaleString('en-IN') : '0');
+        }
+    }
+
+    // Utility methods for date formatting
+    formatEventDate(dateString) {
+        if (!dateString) return 'Date not available';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', { 
+            weekday: 'short', 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric' 
+        });
+    }
+
+    formatEventTime(startDate, endDate) {
+        if (!startDate || !endDate) return 'Time not specified';
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return `${start.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    formatEventTimeOnly(dateString) {
+        if (!dateString) return 'Time not specified';
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    getEventIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id') || '1'; // Default to event 1
+    }
+
+    getStaticEventDetails(eventId) {
+        // Static event data matching the events in events-script.js
+        const staticEvents = [
+            {
+                id: 1,
+                title: 'Sunburn Festival 2023',
+                category: 'music-festival',
+                subcategory: 'EDM',
+                location: 'goa',
+                venue: 'Vasco da Gama Park, Goa',
+                date: '2023-12-16',
+                endDate: '2023-12-17',
+                language: 'english',
+                price: 4500,
+                interested: 12500,
+                image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'Experience the ultimate EDM festival with world-class DJs and artists from around the globe. Sunburn Festival is India\'s largest electronic dance music festival.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Entertainment'
+                ],
+                importantInfo: [
+                    'Age limit: 18+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No photography or recording allowed',
+                    'Strict dress code: No offensive clothing'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Alcohol Served', icon: 'fas fa-wine-bottle' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Couple Friendly', icon: 'fas fa-heart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Vasco da Gama Park is a beautiful waterfront venue in Goa.',
+                    features: [
+                        'Main Event Area',
+                        'Multiple Stages',
+                        'Food & Beverage Outlets',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 5:00 PM. First entry is at 6:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food policies vary by venue. Please check venue guidelines.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, limited parking is available at the venue.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '12 Hours',
+                ageLimit: '18+ Years',
+                genre: 'EDM',
+                city: 'Goa',
+                interestedCount: 12500,
+                tickets: {
+                    regular: { price: 4500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 6500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 9500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 2,
+                title: 'EDM Night with DJ Snake',
+                category: 'concerts',
+                subcategory: 'EDM',
+                location: 'mumbai',
+                venue: 'Jio Garden, Mumbai',
+                date: '2023-12-16',
+                endDate: '2023-12-16',
+                language: 'english',
+                price: 2500,
+                interested: 8200,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '6 Hours',
+                ageLimit: '18+ Years',
+                genre: 'EDM',
+                city: 'Mumbai',
+                interestedCount: 8200,
+                tickets: {
+                    regular: { price: 2500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 4500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 6500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 3,
+                title: 'Rock Night with Queen',
+                category: 'concerts',
+                subcategory: 'Rock',
+                location: 'delhi',
+                venue: 'NSCI Stadium, Delhi',
+                date: '2023-12-17',
+                endDate: '2023-12-17',
+                language: 'english',
+                price: 3500,
+                interested: 10000,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '8 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Rock',
+                city: 'Delhi',
+                interestedCount: 10000,
+                tickets: {
+                    regular: { price: 3500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 5500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 7500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 4,
+                title: 'Bollywood Night with Shah Rukh Khan',
+                category: 'concerts',
+                subcategory: 'Bollywood',
+                location: 'bangalore',
+                venue: 'Lalbagh Stadium, Bangalore',
+                date: '2023-12-18',
+                endDate: '2023-12-18',
+                language: 'hindi',
+                price: 4500,
+                interested: 12000,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '10 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Bollywood',
+                city: 'Bangalore',
+                interestedCount: 12000,
+                tickets: {
+                    regular: { price: 4500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 6500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 8500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 5,
+                title: 'K-pop Night with BTS',
+                category: 'concerts',
+                subcategory: 'K-pop',
+                location: 'chennai',
+                venue: 'Velachery Stadium, Chennai',
+                date: '2023-12-19',
+                endDate: '2023-12-19',
+                language: 'english',
+                price: 5500,
+                interested: 14000,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '12 Hours',
+                ageLimit: '18+ Years',
+                genre: 'K-pop',
+                city: 'Chennai',
+                interestedCount: 14000,
+                tickets: {
+                    regular: { price: 5500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 7500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 9500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 6,
+                title: 'Indie Night with Lila',
+                category: 'concerts',
+                subcategory: 'Indie',
+                location: 'hyderabad',
+                venue: 'Charminar Stadium, Hyderabad',
+                date: '2023-12-20',
+                endDate: '2023-12-20',
+                language: 'english',
+                price: 2500,
+                interested: 6000,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '6 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Indie',
+                city: 'Hyderabad',
+                interestedCount: 6000,
+                tickets: {
+                    regular: { price: 2500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 4500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 6500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 7,
+                title: 'Jazz Night with Ella Fitzgerald',
+                category: 'concerts',
+                subcategory: 'Jazz',
+                location: 'pune',
+                venue: 'Pune Stadium, Pune',
+                date: '2023-12-21',
+                endDate: '2023-12-21',
+                language: 'english',
+                price: 3500,
+                interested: 8000,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '8 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Rock',
+                city: 'Bangalore',
+                interestedCount: 9700,
+                tickets: {
+                    regular: { price: 3200, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 5200, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 7200, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            }
+        ];
+        
+        // Find and return the event with matching ID
+        return staticEvents.find(event => event.id == eventId) || null;
+    }
+    
+    // Add missing closing bracket for the class
+    showTicketSelection() {
+        if (!this.eventData || !this.eventData.tickets) {
+            console.error('Event data or tickets not available');
+            return;
+        }
+
+        // Create modal for ticket selection
+        const modal = document.createElement('div');
+        modal.className = 'ticket-selection-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Select Ticket Type</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="event-info">
+                            <h3>${this.eventData.title}</h3>
+                            <p>${new Date(this.eventData.date).toLocaleDateString()} | ${this.eventData.venue}</p>
+                        </div>
+                        <div class="ticket-options">
+                            ${Object.entries(this.eventData.tickets).map(([type, ticket]) => `
+                                <div class="ticket-option" data-ticket-type="${type}">
+                                    <div class="ticket-header">
+                                        <div class="ticket-type">${ticket.name}</div>
+                                        <div class="ticket-price">₹${ticket.price}</div>
+                                    </div>
+                                    <ul class="ticket-features">
+                                        ${ticket.features.map(feature => `<li>${feature}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add to body
+        document.body.appendChild(modal);
+
+        // Add styles
+        const modalStyles = document.createElement('style');
+        modalStyles.textContent = `
+            .ticket-selection-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                z-index: 2000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .ticket-selection-modal .modal-content {
+                background: #1f2937;
+                padding: 30px;
+                border-radius: 12px;
+                max-width: 600px;
+                width: 90%;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+            
+            .ticket-selection-modal .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #374151;
+            }
+            
+            .ticket-selection-modal h2 {
+                color: #f9fafb;
+                font-size: 1.5rem;
+                margin: 0;
+            }
+            
+            .ticket-selection-modal .close-modal {
+                background: none;
+                border: none;
+                color: #9ca3af;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+            
+            .ticket-selection-modal .event-info h3 {
+                color: #f9fafb;
+                margin: 0 0 10px 0;
+            }
+            
+            .ticket-selection-modal .event-info p {
+                color: #d1d5db;
+                margin: 0;
+            }
+            
+            .ticket-selection-modal .ticket-options {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+            
+            .ticket-selection-modal .ticket-option {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                padding: 20px;
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+            
+            .ticket-selection-modal .ticket-option:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                border-color: #dc2626;
+            }
+            
+            .ticket-selection-modal .ticket-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+            
+            .ticket-selection-modal .ticket-type {
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #ffffff;
+            }
+            
+            .ticket-selection-modal .ticket-price {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #dc2626;
+            }
+            
+            .ticket-selection-modal .ticket-features {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .ticket-selection-modal .ticket-features li {
+                padding: 5px 0;
+                color: #cbd5e1;
+                font-size: 0.9rem;
+            }
+            
+            .ticket-selection-modal .ticket-features li:before {
+                content: "✓";
+                color: #10b981;
+                margin-right: 8px;
+            }
+            
+            .ticket-selection-modal .modal-footer {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #374151;
+            }
+            
+            .ticket-selection-modal .cancel-btn {
+                padding: 10px 20px;
+                background: #374151;
+                color: #f9fafb;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .ticket-selection-modal .cancel-btn:hover {
+                background: #4b5563;
+            }
+        `;
+        document.head.appendChild(modalStyles);
+
+        // Close modal function
+        const closeModal = () => {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(modal);
+                if (modalStyles.parentNode) {
+                    modalStyles.parentNode.removeChild(modalStyles);
+                }
+            }, 300);
+        };
+
+        // Add event listeners
+        const closeBtn = modal.querySelector('.close-modal');
+        const cancelBtn = modal.querySelector('.cancel-btn');
+        const ticketOptions = modal.querySelectorAll('.ticket-option');
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        modal.querySelector('.modal-overlay').addEventListener('click', (e) => {
+            if (e.target === modal.querySelector('.modal-overlay')) {
+                closeModal();
+            }
+        });
+
+        // Add click handlers to ticket options
+        ticketOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const ticketType = option.dataset.ticketType;
+                // Navigate to payment page with event ID and ticket type
+                window.location.href = `payment.html?eventId=${this.eventData.id}&ticketType=${ticketType}`;
+            });
+        });
+
+        // Add keydown listener for ESC key
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    }
+}
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.eventDetailsApp = new EventDetailsApp();
+});
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+    getStaticEventDetails(eventId) {
+        // Static event data matching the events in events-script.js
+        const staticEvents = [
+            {
+                id: 1,
+                title: 'Sunburn Festival 2023',
+                category: 'music-festival',
+                subcategory: 'EDM',
+                location: 'goa',
+                venue: 'Vasco da Gama Park, Goa',
+                date: '2023-12-16',
+                endDate: '2023-12-17',
+                language: 'english',
+                price: 4500,
+                interested: 12500,
+                image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'Experience the ultimate EDM festival with world-class DJs and artists from around the globe. Sunburn Festival is India\'s largest electronic dance music festival.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Entertainment'
+                ],
+                importantInfo: [
+                    'Age limit: 18+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No photography or recording allowed',
+                    'Strict dress code: No offensive clothing'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Alcohol Served', icon: 'fas fa-wine-bottle' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Couple Friendly', icon: 'fas fa-heart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Vasco da Gama Park is a beautiful waterfront venue in Goa.',
+                    features: [
+                        'Main Event Area',
+                        'Multiple Stages',
+                        'Food & Beverage Outlets',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 5:00 PM. First entry is at 6:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food policies vary by venue. Please check venue guidelines.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, limited parking is available at the venue.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '12 Hours',
+                ageLimit: '18+ Years',
+                genre: 'EDM',
+                city: 'Goa',
+                interestedCount: 12500,
+                tickets: {
+                    regular: { price: 4500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 6500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 9500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 2,
+                title: 'EDM Night with DJ Snake',
+                category: 'concerts',
+                subcategory: 'EDM',
+                location: 'mumbai',
+                venue: 'Jio Garden, Mumbai',
+                date: '2023-12-16',
+                endDate: '2023-12-16',
+                language: 'english',
+                price: 2500,
+                interested: 8200,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '6 Hours',
+                ageLimit: '18+ Years',
+                genre: 'EDM',
+                city: 'Mumbai',
+                interestedCount: 8200,
+                tickets: {
+                    regular: { price: 2500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 4500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 6500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            },
+            {
+                id: 3,
+                title: 'Rock Night with Queen',
+                category: 'concerts',
+                subcategory: 'Rock',
+                location: 'delhi',
+                venue: 'NSCI Stadium, Delhi',
+                date: '2023-12-17',
+                endDate: '2023-12-17',
+                language: 'english',
+                price: 3500,
+                interested: 10000,
+                image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '8 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Rock',
+                city: 'Delhi',
+                interestedCount: 10000,
+                tickets: {
+                    regular: { price: 3500, name: 'Regular', features: ['General Admission', 'Access to All Stages', 'Food Courts'] },
+                    vip: { price: 5500, name: 'VIP', features: ['VIP Area Access', 'Premium Viewing', 'Complimentary Drinks', 'Meet & Greet'] },
+                    backstage: { price: 7500, name: 'Backstage', features: ['Backstage Access', 'Artist Meet & Greet', 'Premium Bar', 'VIP Lounge', 'Exclusive Merchandise'] }
+                }
+            }
+        ];
+        
+        // Find and return the event with matching ID
+        return staticEvents.find(event => event.id == eventId) || null;
+    }
+}
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.eventDetailsApp = new EventDetailsApp();
+});
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+// Remove duplicated content that's causing syntax errors
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'No photography during performance',
+                    'Dress code: Smart casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Music Academy is a prestigious venue known for classical performances.',
+                    features: [
+                        'Main Auditorium',
+                        'Balcony Seating',
+                        'Restaurant',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 6:30 PM. Show starts at 7:30 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Food and beverages are available at the venue.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '2.5 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Classical',
+                city: 'Chennai',
+                interestedCount: 2800
+            },
+            {
+                id: 7,
+                title: 'Hip Hop Festival',
+                category: 'music-festival',
+                subcategory: 'Hip Hop',
+                location: 'hyderabad',
+                venue: 'Hitech City Grounds, Hyderabad',
+                date: '2023-12-30',
+                endDate: '2023-12-30',
+                language: 'english',
+                price: 3800,
+                interested: 11200,
+                image: 'https://images.unsplash.com/photo-1511671681180-f1d8b330bde4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511671681180-f1d8b330bde4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511671681180-f1d8b330bde4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511671681180-f1d8b330bde4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511671681180-f1d8b330bde4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'The ultimate hip hop festival featuring top artists and performers from across the country.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Hip Hop'
+                ],
+                importantInfo: [
+                    'Age limit: 16+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No professional recording allowed',
+                    'Dress code: Urban/streetwear'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Merchandise', icon: 'fas fa-shopping-cart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Hitech City Grounds is a large outdoor venue perfect for music festivals.',
+                    features: [
+                        'Main Stage',
+                        'Secondary Stage',
+                        'Food Courts',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 12:00 PM. First performance at 1:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '12 Hours',
+                ageLimit: '16+ Years',
+                genre: 'Hip Hop',
+                city: 'Hyderabad',
+                interestedCount: 11200
+            },
+            {
+                id: 8,
+                title: 'Blues & BBQ Festival',
+                category: 'music-festival',
+                subcategory: 'Blues',
+                location: 'kolkata',
+                venue: 'Victoria Memorial, Kolkata',
+                date: '2023-12-30',
+                endDate: '2023-12-30',
+                language: 'english',
+                price: 2200,
+                interested: 5400,
+                image: 'https://images.unsplash.com/photo-1514525620448-910c5c7ca650?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1514525620448-910c5c7ca650?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1514525620448-910c5c7ca650?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1514525620448-910c5c7ca650?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1514525620448-910c5c7ca650?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A unique festival combining blues music with delicious BBQ food. Enjoy great music and great food in a historic setting.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Blues Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Victoria Memorial is a historic venue with beautiful surroundings.',
+                    features: [
+                        'Main Stage',
+                        'Food Courts',
+                        'Seating Areas',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 11:00 AM. First performance at 12:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '8 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Blues',
+                city: 'Kolkata',
+                interestedCount: 5400
+            },
+            {
+                id: 9,
+                title: 'Electronic Music Summit',
+                category: 'concerts',
+                subcategory: 'Electronic',
+                location: 'ahmedabad',
+                venue: 'Science City, Ahmedabad',
+                date: '2023-12-30',
+                endDate: '2023-12-30',
+                language: 'english',
+                price: 2900,
+                interested: 7600,
+                image: 'https://images.unsplash.com/photo-1511795411100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795411100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795411100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A gathering of electronic music producers, artists, and fans to celebrate the art of electronic music.',
+                highlights: [
+                    'Concerts',
+                    'Live Performance',
+                    'Electronic Music'
+                ],
+                importantInfo: [
+                    'Age limit: 18+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No professional recording allowed',
+                    'Dress code: Creative/expressive'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Merchandise', icon: 'fas fa-shopping-cart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Science City is a modern venue with excellent acoustics and facilities.',
+                    features: [
+                        'Main Hall',
+                        'Workshop Areas',
+                        'Food Courts',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Registration starts at 9:00 AM. Program begins at 10:00 AM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '10 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Electronic',
+                city: 'Ahmedabad',
+                interestedCount: 7600
+            },
+            {
+                id: 10,
+                title: 'Folk Music Heritage',
+                category: 'concerts',
+                subcategory: 'Folk',
+                location: 'mumbai',
+                venue: 'NCPA, Mumbai',
+                date: '2024-01-06',
+                endDate: '2024-01-06',
+                language: 'hindi',
+                price: 1200,
+                interested: 4200,
+                image: 'https://images.unsplash.com/photo-1511795411400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795411400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795411400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A celebration of India\'s rich folk music heritage with performances by traditional artists.',
+                highlights: [
+                    'Concerts',
+                    'Live Performance',
+                    'Folk Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Traditional/cultural'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'NCPA is a prestigious cultural venue known for classical performances.',
+                    features: [
+                        'Main Auditorium',
+                        'Balcony Seating',
+                        'Restaurant',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 6:00 PM. Show starts at 7:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Food and beverages are available at the venue.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '3 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Folk',
+                city: 'Mumbai',
+                interestedCount: 4200
+            },
+            {
+                id: 11,
+                title: 'Pop Icons Live',
+                category: 'concerts',
+                subcategory: 'Pop',
+                location: 'delhi',
+                venue: 'Dilli Haat, Delhi',
+                date: '2024-01-06',
+                endDate: '2024-01-06',
+                language: 'english',
+                price: 5500,
+                interested: 15600,
+                image: 'https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'An unforgettable evening with pop icons performing their greatest hits live.',
+                highlights: [
+                    'Concerts',
+                    'Live Performance',
+                    'Pop Music'
+                ],
+                importantInfo: [
+                    'Age limit: 12+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No professional recording allowed',
+                    'Dress code: Smart casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Merchandise', icon: 'fas fa-shopping-cart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Dilli Haat is an open-air venue with a vibrant atmosphere.',
+                    features: [
+                        'Main Stage',
+                        'Seating Areas',
+                        'Food Courts',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 5:00 PM. Show starts at 6:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '3 Hours',
+                ageLimit: '12+ Years',
+                genre: 'Pop',
+                city: 'Delhi',
+                interestedCount: 15600
+            },
+            {
+                id: 12,
+                title: 'Reggae Sunsplash',
+                category: 'music-festival',
+                subcategory: 'Reggae',
+                location: 'goa',
+                venue: 'Anjuna Beach, Goa',
+                date: '2024-01-06',
+                endDate: '2024-01-06',
+                language: 'english',
+                price: 4100,
+                interested: 9800,
+                image: 'https://images.unsplash.com/photo-1511795411600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795411600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795411600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'Feel the rhythm of reggae music at one of Goa\'s most iconic beaches.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Reggae Music'
+                ],
+                importantInfo: [
+                    'Age limit: 18+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No professional recording allowed',
+                    'Dress code: Beachwear/casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Merchandise', icon: 'fas fa-shopping-cart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Anjuna Beach is a world-famous beach venue with a vibrant atmosphere.',
+                    features: [
+                        'Main Stage',
+                        'Beach Seating',
+                        'Food Courts',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 3:00 PM. Show starts at 4:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '6 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Reggae',
+                city: 'Goa',
+                interestedCount: 9800
+            },
+            {
+                id: 13,
+                title: 'Country Roads Festival',
+                category: 'music-festival',
+                subcategory: 'Country',
+                location: 'bangalore',
+                venue: 'Cubbon Park, Bangalore',
+                date: '2024-01-13',
+                endDate: '2024-01-13',
+                language: 'english',
+                price: 2700,
+                interested: 6900,
+                image: 'https://images.unsplash.com/photo-1511795411700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795411700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795411700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A celebration of country music in one of Bangalore\'s most beautiful parks.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Country Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Cubbon Park is a historic park with beautiful green spaces.',
+                    features: [
+                        'Main Stage',
+                        'Lawn Seating',
+                        'Food Courts',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 10:00 AM. First performance at 11:00 AM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '8 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Country',
+                city: 'Bangalore',
+                interestedCount: 6900
+            },
+            {
+                id: 14,
+                title: 'Heavy Metal Thunder',
+                category: 'concerts',
+                subcategory: 'Metal',
+                location: 'pune',
+                venue: 'Pune Race Course, Pune',
+                date: '2024-01-13',
+                endDate: '2024-01-13',
+                language: 'english',
+                price: 3300,
+                interested: 8400,
+                image: 'https://images.unsplash.com/photo-1511795411800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795411800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795411800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'Experience the thunderous power of heavy metal with top bands from across the country.',
+                highlights: [
+                    'Concerts',
+                    'Live Performance',
+                    'Heavy Metal'
+                ],
+                importantInfo: [
+                    'Age limit: 16+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No professional recording allowed',
+                    'Dress code: Rock/metal attire'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Merchandise', icon: 'fas fa-shopping-cart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Pune Race Course is a large outdoor venue perfect for heavy metal concerts.',
+                    features: [
+                        'Main Stage',
+                        'Standing Room',
+                        'Food Courts',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 4:00 PM. Show starts at 5:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '5 Hours',
+                ageLimit: '16+ Years',
+                genre: 'Metal',
+                city: 'Pune',
+                interestedCount: 8400
+            },
+            {
+                id: 15,
+                title: 'World Music Festival',
+                category: 'music-festival',
+                subcategory: 'World',
+                location: 'chennai',
+                venue: 'Marina Beach, Chennai',
+                date: '2024-01-13',
+                endDate: '2024-01-13',
+                language: 'multi',
+                price: 2600,
+                interested: 11500,
+                image: 'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A celebration of world music featuring artists from different cultures and traditions.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'World Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Cultural/comfortable'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Marina Beach is one of the longest urban beaches in the world.',
+                    features: [
+                        'Main Stage',
+                        'Beach Seating',
+                        'Food Courts',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 3:00 PM. Show starts at 4:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '6 Hours',
+                ageLimit: 'All Ages',
+                genre: 'World',
+                city: 'Chennai',
+                interestedCount: 11500
+            },
+            {
+                id: 16,
+                title: 'Bollywood Night',
+                category: 'concerts',
+                subcategory: 'Bollywood',
+                location: 'mumbai',
+                venue: 'Film City, Mumbai',
+                date: '2024-01-20',
+                endDate: '2024-01-20',
+                language: 'hindi',
+                price: 2800,
+                interested: 13200,
+                image: 'https://images.unsplash.com/photo-1511795410180-8b6d9d2e4a8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410180-8b6d9d2e4a8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410180-8b6d9d2e4a8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410180-8b6d9d2e4a8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410180-8b6d9d2e4a8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'An evening of Bollywood\'s biggest hits performed live by top playback singers.',
+                highlights: [
+                    'Concerts',
+                    'Live Performance',
+                    'Bollywood Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Smart casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Film City is Mumbai\'s premier film and entertainment complex.',
+                    features: [
+                        'Main Auditorium',
+                        'Balcony Seating',
+                        'Restaurant',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 7:00 PM. Show starts at 8:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Food and beverages are available at the venue.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '3 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Bollywood',
+                city: 'Mumbai',
+                interestedCount: 13200
+            },
+            {
+                id: 17,
+                title: 'Tamil Music Festival',
+                category: 'music-festival',
+                subcategory: 'Tamil',
+                location: 'chennai',
+                venue: 'Phoenix Market City, Chennai',
+                date: '2024-01-20',
+                endDate: '2024-01-20',
+                language: 'tamil',
+                price: 3500,
+                interested: 9800,
+                image: 'https://images.unsplash.com/photo-1511795410100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A celebration of Tamil music featuring the biggest names in the industry.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Tamil Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Traditional/cultural'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Phoenix Market City is a premier shopping and entertainment destination.',
+                    features: [
+                        'Main Stage',
+                        'Seating Areas',
+                        'Food Courts',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 5:00 PM. Show starts at 6:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '4 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Tamil',
+                city: 'Chennai',
+                interestedCount: 9800
+            },
+            {
+                id: 18,
+                title: 'Punjabi Dhol Festival',
+                category: 'music-festival',
+                subcategory: 'Punjabi',
+                location: 'delhi',
+                venue: 'Kingdom of Dreams, Delhi',
+                date: '2024-01-20',
+                endDate: '2024-01-20',
+                language: 'punjabi',
+                price: 2200,
+                interested: 7500,
+                image: 'https://images.unsplash.com/photo-1511795410200-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410200-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410200-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410200-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410200-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'Experience the energetic beats of Punjabi dhol music with top dhol players from Punjab.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Punjabi Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Traditional/cultural'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Kingdom of Dreams is a premier entertainment destination in Delhi.',
+                    features: [
+                        'Main Stage',
+                        'Seating Areas',
+                        'Food Courts',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 6:00 PM. Show starts at 7:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '3 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Punjabi',
+                city: 'Delhi',
+                interestedCount: 7500
+            },
+            {
+                id: 19,
+                title: 'Classical Dance Performance',
+                category: 'dance',
+                subcategory: 'Classical',
+                location: 'bangalore',
+                venue: 'Ravindra Kalakshetra, Bangalore',
+                date: '2024-01-27',
+                endDate: '2024-01-27',
+                language: 'kannada',
+                price: 1600,
+                interested: 4300,
+                image: 'https://images.unsplash.com/photo-1511795410300-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410300-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410300-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410300-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410300-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A mesmerizing evening of classical dance performances by renowned artists.',
+                highlights: [
+                    'Dance',
+                    'Live Performance',
+                    'Classical Dance'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'No photography during performance',
+                    'Dress code: Smart casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Ravindra Kalakshetra is a premier cultural venue in Bangalore.',
+                    features: [
+                        'Main Auditorium',
+                        'Balcony Seating',
+                        'Restaurant',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 6:30 PM. Show starts at 7:30 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Food and beverages are available at the venue.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '2.5 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Classical Dance',
+                city: 'Bangalore',
+                interestedCount: 4300
+            },
+            {
+                id: 20,
+                title: 'Comedy Night Live',
+                category: 'comedy-shows',
+                subcategory: 'Comedy',
+                location: 'pune',
+                venue: 'The Comedy Store, Pune',
+                date: '2024-01-27',
+                endDate: '2024-01-27',
+                language: 'english',
+                price: 1200,
+                interested: 5600,
+                image: 'https://images.unsplash.com/photo-1511795410400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'An evening of laughter with top comedians performing live stand-up comedy.',
+                highlights: [
+                    'Comedy Shows',
+                    'Live Performance',
+                    'Stand-up Comedy'
+                ],
+                importantInfo: [
+                    'Age limit: 15+ years',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'The Comedy Store is Pune\'s premier comedy venue.',
+                    features: [
+                        'Main Hall',
+                        'Seating Areas',
+                        'Bar',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 8:00 PM. Show starts at 8:30 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Food and beverages are available at the venue.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '2 Hours',
+                ageLimit: '15+ Years',
+                genre: 'Comedy',
+                city: 'Pune',
+                interestedCount: 5600
+            },
+            {
+                id: 21,
+                title: 'Telugu Cinema Songs',
+                category: 'concerts',
+                subcategory: 'Telugu',
+                location: 'hyderabad',
+                venue: 'Gachibowli Stadium, Hyderabad',
+                date: '2024-01-27',
+                endDate: '2024-01-27',
+                language: 'telugu',
+                price: 3100,
+                interested: 12400,
+                image: 'https://images.unsplash.com/photo-1511795410500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A musical journey through the biggest hits of Telugu cinema performed live.',
+                highlights: [
+                    'Concerts',
+                    'Live Performance',
+                    'Telugu Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'No professional recording allowed',
+                    'Dress code: Traditional/cultural'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Gachibowli Stadium is Hyderabad\'s premier sports and entertainment venue.',
+                    features: [
+                        'Main Stage',
+                        'Seating Areas',
+                        'Food Courts',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 6:00 PM. Show starts at 7:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '3 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Telugu',
+                city: 'Hyderabad',
+                interestedCount: 12400
+            },
+            {
+                id: 22,
+                title: 'Kolkata Theatre Festival',
+                category: 'theatre',
+                subcategory: 'Theatre',
+                location: 'kolkata',
+                venue: 'Academy of Fine Arts, Kolkata',
+                date: '2024-02-03',
+                endDate: '2024-02-03',
+                language: 'bengali',
+                price: 1800,
+                interested: 3900,
+                image: 'https://images.unsplash.com/photo-1511795410600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A celebration of theatre with performances by leading theatre groups from Kolkata.',
+                highlights: [
+                    'Theatre',
+                    'Live Performance',
+                    'Drama'
+                ],
+                importantInfo: [
+                    'Age limit: 12+ years',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'No photography during performance',
+                    'Dress code: Smart casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Academy of Fine Arts is Kolkata\'s premier cultural institution.',
+                    features: [
+                        'Main Auditorium',
+                        'Balcony Seating',
+                        'Restaurant',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 6:00 PM. Show starts at 7:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Food and beverages are available at the venue.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '2.5 Hours',
+                ageLimit: '12+ Years',
+                genre: 'Theatre',
+                city: 'Kolkata',
+                interestedCount: 3900
+            },
+            {
+                id: 23,
+                title: 'Gujarati Folk Music',
+                category: 'concerts',
+                subcategory: 'Gujarati',
+                location: 'ahmedabad',
+                venue: 'Kite Festival Ground, Ahmedabad',
+                date: '2024-02-03',
+                endDate: '2024-02-03',
+                language: 'gujarati',
+                price: 1300,
+                interested: 4700,
+                image: 'https://images.unsplash.com/photo-1511795410700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A celebration of Gujarati folk music with traditional performances by local artists.',
+                highlights: [
+                    'Concerts',
+                    'Live Performance',
+                    'Gujarati Music'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'Photography allowed without flash',
+                    'Dress code: Traditional/cultural'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Kite Festival Ground is a large open-air venue in Ahmedabad.',
+                    features: [
+                        'Main Stage',
+                        'Lawn Seating',
+                        'Food Courts',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Gates open at 5:00 PM. Show starts at 6:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '3 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Gujarati',
+                city: 'Ahmedabad',
+                interestedCount: 4700
+            },
+            {
+                id: 24,
+                title: 'Electronic Trance Night',
+                category: 'music-festival',
+                subcategory: 'Electronic',
+                location: 'goa',
+                venue: 'Tito\'s Lane, Goa',
+                date: '2024-02-03',
+                endDate: '2024-02-03',
+                language: 'english',
+                price: 4200,
+                interested: 8900,
+                image: 'https://images.unsplash.com/photo-1511795410800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'An electrifying night of trance music with top DJs from around the world.',
+                highlights: [
+                    'Music Festival',
+                    'Live Performance',
+                    'Electronic Music'
+                ],
+                importantInfo: [
+                    'Age limit: 18+ years',
+                    'ID proof mandatory for entry',
+                    'Outside food and beverages not allowed',
+                    'No professional recording allowed',
+                    'Dress code: Creative/expressive'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' },
+                    { name: 'Merchandise', icon: 'fas fa-shopping-cart' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Tito\'s Lane is one of Goa\'s most famous nightlife destinations.',
+                    features: [
+                        'Main Stage',
+                        'Dance Floor',
+                        'Bars',
+                        'Merchandise Stalls',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 10:00 PM. Music starts at 11:00 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Multiple food vendors available.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '6 Hours',
+                ageLimit: '18+ Years',
+                genre: 'Electronic',
+                city: 'Goa',
+                interestedCount: 8900
+            },
+            {
+                id: 25,
+                title: 'Marathi Drama Performance',
+                category: 'theatre',
+                subcategory: 'Marathi',
+                location: 'mumbai',
+                venue: 'Prithvi Theatre, Mumbai',
+                date: '2024-02-10',
+                endDate: '2024-02-10',
+                language: 'marathi',
+                price: 900,
+                interested: 3200,
+                image: 'https://images.unsplash.com/photo-1511795410900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                images: [
+                    'https://images.unsplash.com/photo-1511795410900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+                    'https://images.unsplash.com/photo-1511795410900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80'
+                ],
+                gallery: [
+                    'https://images.unsplash.com/photo-1511795410900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511795411900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+                ],
+                description: 'A traditional Marathi drama performance showcasing the rich theatrical heritage of Maharashtra.',
+                highlights: [
+                    'Theatre',
+                    'Live Performance',
+                    'Marathi Drama'
+                ],
+                importantInfo: [
+                    'Age limit: All ages',
+                    'ID proof recommended for entry',
+                    'Outside food and beverages not allowed',
+                    'No photography during performance',
+                    'Dress code: Smart casual'
+                ],
+                facilities: [
+                    { name: 'Food Court', icon: 'fas fa-utensils' },
+                    { name: 'Parking', icon: 'fas fa-parking' },
+                    { name: 'Medical', icon: 'fas fa-first-aid' },
+                    { name: 'Wheelchair Accessible', icon: 'fas fa-wheelchair' }
+                ],
+                offers: [],
+                venueLayout: {
+                    description: 'Prithvi Theatre is Mumbai\'s premier venue for experimental and traditional theatre.',
+                    features: [
+                        'Main Auditorium',
+                        'Balcony Seating',
+                        'Restaurant',
+                        'Parking Available'
+                    ],
+                    mapImage: ''
+                },
+                faqs: [
+                    {
+                        question: 'What time does the event start?',
+                        answer: 'Doors open at 6:30 PM. Show starts at 7:30 PM.'
+                    },
+                    {
+                        question: 'Can I bring outside food?',
+                        answer: 'Outside food is not allowed. Food and beverages are available at the venue.'
+                    },
+                    {
+                        question: 'Is parking available?',
+                        answer: 'Yes, parking is available but limited. Public transport recommended.'
+                    }
+                ],
+                terms: [
+                    'Tickets are non-transferable',
+                    'No refunds or exchanges',
+                    'Venue rules apply',
+                    'Entry is subject to security checks',
+                    'Organizers reserve the right to refuse entry'
+                ],
+                duration: '2 Hours',
+                ageLimit: 'All Ages',
+                genre: 'Marathi',
+                city: 'Mumbai',
+                interestedCount: 3200
+            }
+        ];
+        
+        // Find and return the event with matching ID
+        return staticEvents.find(event => event.id == eventId) || null;
+    }
+
+    showLoadingState() {
+        // Add loading indicator to main content
+        const mainContent = document.querySelector('.main-container');
+        if (mainContent) {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = `
+                <div class="spinner"></div>
+                <p>Loading event details...</p>
+            `;
+            mainContent.style.opacity = '0.5';
+            document.body.appendChild(loadingDiv);
+        }
+    }
+
+    hideLoadingState() {
+        const loadingDiv = document.querySelector('.loading');
+        const mainContent = document.querySelector('.main-container');
+        if (loadingDiv) {
+            loadingDiv.remove();
+        }
+        if (mainContent) {
+            mainContent.style.opacity = '1';
+        }
+    }
+
+    showErrorState(message) {
+        const loadingDiv = document.querySelector('.loading');
+        if (loadingDiv) {
+            loadingDiv.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>${message}</p>
+                    <button class="retry-btn">Retry</button>
+                </div>
+            `;
+            
+            const retryBtn = loadingDiv.querySelector('.retry-btn');
+            retryBtn.addEventListener('click', () => {
+                loadingDiv.remove();
+                this.loadEventDetails();
+            });
+        }
+    }
+
+    nextSlide() {
+        this.slides[this.currentSlide].classList.remove('active');
+        this.dots[this.currentSlide].classList.remove('active');
+        
+        this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+        
+        this.slides[this.currentSlide].classList.add('active');
+        this.dots[this.currentSlide].classList.add('active');
+    }
+
+    prevSlide() {
+        this.slides[this.currentSlide].classList.remove('active');
+        this.dots[this.currentSlide].classList.remove('active');
+        
+        this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+        
+        this.slides[this.currentSlide].classList.add('active');
+        this.dots[this.currentSlide].classList.add('active');
+    }
+
+    goToSlide(slideIndex) {
+        this.slides[this.currentSlide].classList.remove('active');
+        this.dots[this.currentSlide].classList.remove('active');
+        
+        this.currentSlide = slideIndex;
+        
+        this.slides[this.currentSlide].classList.add('active');
+        this.dots[this.currentSlide].classList.add('active');
+    }
+
+    setupSlider() {
+        // Clear any existing interval
+        if (this.sliderInterval) {
+            clearInterval(this.sliderInterval);
+        }
+        
+        // Set up automatic sliding
+        this.sliderInterval = setInterval(() => {
+            this.nextSlide();
+        }, 5000);
+        
+        // Add event listeners for manual control
+        const nextBtn = document.querySelector('.next-btn');
+        const prevBtn = document.querySelector('.prev-btn');
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                this.nextSlide();
+                // Reset interval
+                clearInterval(this.sliderInterval);
+                this.sliderInterval = setInterval(() => {
+                    this.nextSlide();
+                }, 5000);
+            });
+        }
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                this.prevSlide();
+                // Reset interval
+                clearInterval(this.sliderInterval);
+                this.sliderInterval = setInterval(() => {
+                    this.nextSlide();
+                }, 5000);
+            });
+        }
+        
+        // Dot navigation
+        this.dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                this.goToSlide(index);
+                // Reset interval
+                clearInterval(this.sliderInterval);
+                this.sliderInterval = setInterval(() => {
+                    this.nextSlide();
+                }, 5000);
+            });
+        });
+    }
+
+    setupEventListeners() {
+        // Expandable description
+        const expandBtn = document.querySelector('.expand-btn');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => {
+                const content = document.querySelector('.expandable-content');
+                const icon = expandBtn.querySelector('i');
+                
+                content.classList.toggle('expanded');
+                
+                if (content.classList.contains('expanded')) {
+                    expandBtn.innerHTML = 'Read Less <i class="fas fa-chevron-up"></i>';
+                } else {
+                    expandBtn.innerHTML = 'Read More <i class="fas fa-chevron-down"></i>';
+                }
+            });
+        }
+
+        // Gallery items
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        galleryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                this.openImageModal(item.querySelector('img').src);
+            });
+        });
+
+        // Book now button - Modified to show ticket selection
+        const bookNowBtn = document.querySelector('.book-now-btn');
+        if (bookNowBtn) {
+            bookNowBtn.addEventListener('click', () => {
+                // Show ticket selection modal
+                this.showTicketSelection();
+            });
+        }
+
+        // User profile menu
+        document.getElementById('userProfile').addEventListener('click', () => {
+            this.toggleUserMenu();
+        });
+    }
+
+    setupCollapsibleSections() {
+        const headers = document.querySelectorAll('.collapsible-header');
+        
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('i');
+                
+                // Toggle active class
+                header.classList.toggle('active');
+                content.classList.toggle('active');
+                
+                // Rotate icon
+                if (header.classList.contains('active')) {
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
+    }
+
+    openImageModal(imageSrc) {
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'image-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="modal-content">
+                    <button class="close-modal"><i class="fas fa-times"></i></button>
+                    <img src="${imageSrc}" alt="Gallery Image">
+                </div>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(modal);
+        
+        // Add styles
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.style.cssText = `
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        `;
+        
+        const img = modalContent.querySelector('img');
+        img.style.cssText = `
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+        `;
+        
+        const closeBtn = modalContent.querySelector('.close-modal');
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+        `;
+        
+        // Close modal
+        const closeModal = () => {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(modal);
+            }, 300);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        modal.querySelector('.modal-overlay').addEventListener('click', (e) => {
+            if (e.target === modal.querySelector('.modal-overlay')) {
+                closeModal();
+            }
+        });
+        
+        // Add keydown listener for ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    }
+
+    showBookingConfirmation(bookingResponse) {
+        // Create confirmation modal
+        const modal = document.createElement('div');
+        modal.className = 'booking-confirmation';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="modal-content">
+                    <div class="confirmation-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h2>Booking Confirmed!</h2>
+                    <p>Your tickets for ${this.eventData?.title || 'this event'} have been successfully booked.</p>
+                    <p>Booking ID: <strong>${bookingResponse.bookingId}</strong></p>
+                    <p>Check your email for ticket details and confirmation.</p>
+                    <div class="qr-code">
+                        <img src="${bookingResponse.qrCode}" alt="Booking QR Code">
+                        <p>Show this QR code at the entrance</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="view-tickets-btn">View My Tickets</button>
+                        <button class="continue-btn">Continue Browsing</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(modal);
+        
+        // Add styles
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        `;
+        
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.style.cssText = `
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        `;
+        
+        const icon = modalContent.querySelector('.confirmation-icon');
+        icon.style.cssText = `
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        `;
+        
+        const h2 = modalContent.querySelector('h2');
+        h2.style.cssText = `
+            font-size: 2rem;
+            color: #111827;
+            margin-bottom: 15px;
+        `;
+        
+        const p = modalContent.querySelectorAll('p');
+        p.forEach(el => {
+            el.style.cssText = `
+                color: #4b5563;
+                margin-bottom: 10px;
+                font-size: 1.1rem;
+            `;
+        });
+        
+        const qrCode = modalContent.querySelector('.qr-code');
+        if (qrCode) {
+            qrCode.style.cssText = `
+                margin: 20px 0;
+                padding: 15px;
+                background: #f9fafb;
+                border-radius: 8px;
+            `;
+            
+            const qrImg = qrCode.querySelector('img');
+            if (qrImg) {
+                qrImg.style.cssText = `
+                    width: 150px;
+                    height: 150px;
+                    margin: 0 auto 10px;
+                `;
+            }
+        }
+        
+        const actions = modalContent.querySelector('.modal-actions');
+        actions.style.cssText = `
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        `;
+        
+        const viewBtn = modalContent.querySelector('.view-tickets-btn');
+        const continueBtn = modalContent.querySelector('.continue-btn');
+        
+        viewBtn.style.cssText = `
+            padding: 12px 24px;
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+        
+        continueBtn.style.cssText = `
+            padding: 12px 24px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        `;
+        
+        viewBtn.addEventListener('mouseenter', () => {
+            viewBtn.style.background = '#b91c1c';
+        });
+        
+        viewBtn.addEventListener('mouseleave', () => {
+            viewBtn.style.background = '#dc2626';
+        });
+        
+        continueBtn.addEventListener('mouseenter', () => {
+            continueBtn.style.background = '#e5e7eb';
+        });
+        
+        continueBtn.addEventListener('mouseleave', () => {
+            continueBtn.style.background = '#f3f4f6';
+        });
+        
+        // Close modal
+        const closeModal = () => {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(modal);
+            }, 300);
+        };
+        
+        // Button actions
+        viewBtn.addEventListener('click', () => {
+            closeModal();
+            // Redirect to my bookings
+            window.location.href = 'index.html#my-bookings';
+        });
+        
+        continueBtn.addEventListener('click', closeModal);
+        
+        modal.querySelector('.modal-overlay').addEventListener('click', (e) => {
+            if (e.target === modal.querySelector('.modal-overlay')) {
+                closeModal();
+            }
+        });
+    }
+
+    checkUserSession() {
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            try {
+                const user = JSON.parse(savedUser);
+                document.getElementById('userDisplayName').textContent = user.name;
+            } catch (e) {
+                localStorage.removeItem('currentUser');
+            }
+        }
+    }
+
+    toggleUserMenu() {
+        // Implementation for user menu (can integrate with existing user system)
+        console.log('User menu clicked');
+    }
+
+    showTicketSelection() {
+        if (!this.eventData || !this.eventData.tickets) {
+            console.error('Event data or tickets not available');
+            return;
+        }
+
+        // Create modal for ticket selection
+        const modal = document.createElement('div');
+        modal.className = 'ticket-selection-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Select Ticket Type</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="event-info">
+                            <h3>${this.eventData.title}</h3>
+                            <p>${new Date(this.eventData.date).toLocaleDateString()} | ${this.eventData.venue}</p>
+                        </div>
+                        <div class="ticket-options">
+                            ${Object.entries(this.eventData.tickets).map(([type, ticket]) => `
+                                <div class="ticket-option" data-ticket-type="${type}">
+                                    <div class="ticket-header">
+                                        <div class="ticket-type">${ticket.name}</div>
+                                        <div class="ticket-price">₹${ticket.price}</div>
+                                    </div>
+                                    <ul class="ticket-features">
+                                        ${ticket.features.map(feature => `<li>${feature}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add to body
+        document.body.appendChild(modal);
+
+        // Add styles
+        const modalStyles = document.createElement('style');
+        modalStyles.textContent = `
+            .ticket-selection-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                z-index: 2000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .ticket-selection-modal .modal-content {
+                background: #1f2937;
+                padding: 30px;
+                border-radius: 12px;
+                max-width: 600px;
+                width: 90%;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+            
+            .ticket-selection-modal .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #374151;
+            }
+            
+            .ticket-selection-modal h2 {
+                color: #f9fafb;
+                font-size: 1.5rem;
+                margin: 0;
+            }
+            
+            .ticket-selection-modal .close-modal {
+                background: none;
+                border: none;
+                color: #9ca3af;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+            
+            .ticket-selection-modal .event-info h3 {
+                color: #f9fafb;
+                margin: 0 0 10px 0;
+            }
+            
+            .ticket-selection-modal .event-info p {
+                color: #d1d5db;
+                margin: 0;
+            }
+            
+            .ticket-selection-modal .ticket-options {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+            
+            .ticket-selection-modal .ticket-option {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                padding: 20px;
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+            
+            .ticket-selection-modal .ticket-option:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                border-color: #dc2626;
+            }
+            
+            .ticket-selection-modal .ticket-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+            
+            .ticket-selection-modal .ticket-type {
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #ffffff;
+            }
+            
+            .ticket-selection-modal .ticket-price {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #dc2626;
+            }
+            
+            .ticket-selection-modal .ticket-features {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .ticket-selection-modal .ticket-features li {
+                padding: 5px 0;
+                color: #cbd5e1;
+                font-size: 0.9rem;
+            }
+            
+            .ticket-selection-modal .ticket-features li:before {
+                content: "✓";
+                color: #10b981;
+                margin-right: 8px;
+            }
+            
+            .ticket-selection-modal .modal-footer {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #374151;
+            }
+            
+            .ticket-selection-modal .cancel-btn {
+                padding: 10px 20px;
+                background: #374151;
+                color: #f9fafb;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .ticket-selection-modal .cancel-btn:hover {
+                background: #4b5563;
+            }
+        `;
+        document.head.appendChild(modalStyles);
+
+        // Close modal function
+        const closeModal = () => {
+            modal.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                document.body.removeChild(modal);
+                if (modalStyles.parentNode) {
+                    modalStyles.parentNode.removeChild(modalStyles);
+                }
+            }, 300);
+        };
+
+        // Add event listeners
+        const closeBtn = modal.querySelector('.close-modal');
+        const cancelBtn = modal.querySelector('.cancel-btn');
+        const ticketOptions = modal.querySelectorAll('.ticket-option');
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        modal.querySelector('.modal-overlay').addEventListener('click', (e) => {
+            if (e.target === modal.querySelector('.modal-overlay')) {
+                closeModal();
+            }
+        });
+
+        // Add click handlers to ticket options
+        ticketOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const ticketType = option.dataset.ticketType;
+                // Navigate to payment page with event ID and ticket type
+                window.location.href = `payment.html?eventId=${this.eventData.id}&ticketType=${ticketType}`;
+            });
+        });
+
+        // Add keydown listener for ESC key
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    }
+}
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.eventDetailsApp = new EventDetailsApp();
+});
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+`;
+document.head.appendChild(style);

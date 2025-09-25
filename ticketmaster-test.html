@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticketmaster API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            background: #f1f3f4;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+        }
+        button {
+            padding: 10px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .event-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .event-image {
+            height: 150px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        .event-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .event-details {
+            padding: 15px;
+        }
+        .event-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .event-info {
+            margin: 5px 0;
+            color: #666;
+        }
+        .event-price {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+        .event-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .event-link:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ticketmaster API Test</h1>
+            <p>Testing the Ticketmaster API integration with your API key</p>
+        </div>
+        
+        <div class="controls">
+            <h2>Controls</h2>
+            <button id="load-events">Load Events from Ticketmaster</button>
+            <button id="clear-events">Clear Events</button>
+            
+            <div class="log" id="log">
+                Ready to test...
+            </div>
+        </div>
+        
+        <div class="events-grid" id="events-grid">
+            <p>Events will appear here</p>
+        </div>
+    </div>
+
+    <script>
+        // Ticketmaster API Configuration
+        const API_KEY = "0aCyvPIlOsSCksZLGFiTo8DGYIM1h2PC"; // Your Ticketmaster API key
+        const BASE_API_URL = "https://app.ticketmaster.com/discovery/v2/events.json";
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const logElement = document.getElementById('log');
+            const eventsGrid = document.getElementById('events-grid');
+            
+            function log(message, isError = false) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                logElement.innerHTML += `\n${logEntry}`;
+                logElement.scrollTop = logElement.scrollHeight;
+                
+                if (isError) {
+                    logElement.classList.add('error');
+                } else {
+                    logElement.classList.remove('error');
+                }
+            }
+            
+            function clearLog() {
+                logElement.innerHTML = 'Ready to test...';
+                logElement.classList.remove('error');
+            }
+            
+            // Load events from Ticketmaster API
+            document.getElementById('load-events').addEventListener('click', async () => {
+                clearLog();
+                log('Loading events from Ticketmaster API...');
+                
+                try {
+                    // Build API URL with parameters
+                    const params = new URLSearchParams({
+                        apikey: API_KEY,
+                        countryCode: 'IN',
+                        size: 12
+                    });
+                    
+                    const url = `${BASE_API_URL}?${params}`;
+                    log(`Fetching from: ${url}`);
+                    
+                    const response = await fetch(url);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    log('API response received');
+                    console.log('API response:', data);
+                    
+                    if (!data._embedded || !data._embedded.events) {
+                        log('No events found in the response');
+                        eventsGrid.innerHTML = '<p>No events found.</p>';
+                        return;
+                    }
+                    
+                    const events = data._embedded.events;
+                    log(`Found ${events.length} events`);
+                    
+                    // Render events
+                    eventsGrid.innerHTML = events.map(event => {
+                        // Extract image
+                        let imageUrl = '';
+                        if (event.images && event.images.length > 0) {
+                            // Get the largest image
+                            const largestImage = event.images.reduce((prev, current) => 
+                                (prev.width * prev.height > current.width * current.height) ? prev : current
+                            );
+                            imageUrl = largestImage.url;
+                        }
+                        
+                        // Extract date
+                        const date = event.dates && event.dates.start ? 
+                            event.dates.start.localDate || event.dates.start.dateTime : 
+                            'Date not available';
+                        
+                        // Extract venue
+                        let venueName = 'Venue not specified';
+                        if (event._embedded && event._embedded.venues && event._embedded.venues[0]) {
+                            const venue = event._embedded.venues[0];
+                            venueName = venue.name || 'Venue not specified';
+                            if (venue.city) {
+                                venueName += `, ${venue.city.name || ''}`;
+                            }
+                        }
+                        
+                        // Extract price
+                        let price = 'Price not available';
+                        if (event.priceRanges && event.priceRanges.length > 0) {
+                            price = `₹${event.priceRanges[0].min || 0}`;
+                        }
+                        
+                        return `
+                            <div class="event-card">
+                                <div class="event-image">
+                                    ${imageUrl ? `<img src="${imageUrl}" alt="${event.name}">` : 'No image available'}
+                                </div>
+                                <div class="event-details">
+                                    <h3 class="event-title">${event.name || 'Event'}</h3>
+                                    <p class="event-info"><strong>Date:</strong> ${date}</p>
+                                    <p class="event-info"><strong>Venue:</strong> ${venueName}</p>
+                                    <p class="event-price">${price}</p>
+                                    <a href="${event.url}" target="_blank" class="event-link">Book Tickets</a>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    log('Events rendered successfully');
+                } catch (error) {
+                    log(`Error: ${error.message}`, true);
+                    console.error(error);
+                    eventsGrid.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                }
+            });
+            
+            // Clear events
+            document.getElementById('clear-events').addEventListener('click', () => {
+                clearLog();
+                eventsGrid.innerHTML = '<p>Events will appear here</p>';
+                log('Events cleared');
+            });
+        });
+    </script>
+</body>
+</html>

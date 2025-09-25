@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Events Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+        }
+        button {
+            padding: 10px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .event-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Events Loading</h1>
+        
+        <div class="log" id="log">
+            Initializing test...
+        </div>
+        
+        <button id="test-service">Test API Service</button>
+        <button id="test-events">Test Load Events</button>
+        <button id="test-render">Test Render Events</button>
+        
+        <div id="events-container"></div>
+    </div>
+
+    <script src="events-api-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const logElement = document.getElementById('log');
+            const eventsContainer = document.getElementById('events-container');
+            
+            function log(message, isError = false) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                logElement.innerHTML += `\n${logEntry}`;
+                logElement.scrollTop = logElement.scrollHeight;
+                
+                if (isError) {
+                    logElement.classList.add('error');
+                }
+            }
+            
+            function clearLog() {
+                logElement.innerHTML = '';
+                logElement.classList.remove('error');
+            }
+            
+            log('DOM loaded, testing API service availability...');
+            
+            // Test API service
+            document.getElementById('test-service').addEventListener('click', () => {
+                clearLog();
+                log('Testing API service...');
+                
+                try {
+                    if (typeof eventsApiService === 'undefined') {
+                        throw new Error('eventsApiService is not defined');
+                    }
+                    
+                    log('✓ eventsApiService is available');
+                    log(`✓ useMockData: ${eventsApiService.useMockData}`);
+                    log(`✓ API key: ${eventsApiService.apiKey ? 'Set' : 'Not set'}`);
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                }
+            });
+            
+            // Test loading events
+            document.getElementById('test-events').addEventListener('click', async () => {
+                clearLog();
+                log('Testing event loading...');
+                
+                try {
+                    if (typeof eventsApiService === 'undefined') {
+                        throw new Error('eventsApiService is not defined');
+                    }
+                    
+                    log('Loading events...');
+                    const eventsData = await eventsApiService.getEvents({}, 1, 5);
+                    log(`✓ Loaded ${eventsData.events.length} events`);
+                    log(`✓ Total pages: ${eventsData.totalPages}`);
+                    log(`✓ Current page: ${eventsData.page}`);
+                    
+                    if (eventsData.events.length > 0) {
+                        log('First event:');
+                        log(JSON.stringify(eventsData.events[0], null, 2));
+                    }
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                }
+            });
+            
+            // Test rendering events
+            document.getElementById('test-render').addEventListener('click', async () => {
+                clearLog();
+                eventsContainer.innerHTML = '';
+                log('Testing event rendering...');
+                
+                try {
+                    if (typeof eventsApiService === 'undefined') {
+                        throw new Error('eventsApiService is not defined');
+                    }
+                    
+                    log('Loading events for rendering...');
+                    const eventsData = await eventsApiService.getEvents({}, 1, 5);
+                    log(`✓ Loaded ${eventsData.events.length} events`);
+                    
+                    if (eventsData.events.length > 0) {
+                        eventsContainer.innerHTML = eventsData.events.map(event => `
+                            <div class="event-card">
+                                <h3>${event.title}</h3>
+                                <p><strong>Venue:</strong> ${event.venue}</p>
+                                <p><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</p>
+                                <p><strong>Price:</strong> ₹${event.price.toLocaleString('en-IN')}</p>
+                                <p><strong>Interested:</strong> ${event.interested}</p>
+                            </div>
+                        `).join('');
+                        log('✓ Events rendered successfully');
+                    } else {
+                        eventsContainer.innerHTML = '<p>No events to render</p>';
+                        log('No events to render');
+                    }
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                    eventsContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

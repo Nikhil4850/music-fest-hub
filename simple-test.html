@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Events Test</title>
+</head>
+<body>
+    <h1>Simple Events Test</h1>
+    <div id="output">Loading...</div>
+
+    <script src="events-api-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const output = document.getElementById('output');
+            
+            try {
+                output.innerHTML = '<p>Testing events API service...</p>';
+                
+                // Test the API service
+                if (typeof eventsApiService === 'undefined') {
+                    throw new Error('eventsApiService is not defined');
+                }
+                
+                output.innerHTML += '<p>API service found, loading events...</p>';
+                
+                // Load events
+                const eventsData = await eventsApiService.getEvents({}, 1, 5);
+                
+                output.innerHTML += `<p>Loaded ${eventsData.events.length} events</p>`;
+                
+                // Display event titles
+                if (eventsData.events.length > 0) {
+                    const eventList = eventsData.events.map(event => 
+                        `<li>${event.title} - ${event.venue} - ₹${event.price}</li>`
+                    ).join('');
+                    
+                    output.innerHTML += `
+                        <h2>Events:</h2>
+                        <ul>${eventList}</ul>
+                    `;
+                }
+            } catch (error) {
+                output.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

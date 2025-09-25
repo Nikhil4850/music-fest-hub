@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Ticketmaster API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .api-key-form {
+            margin-bottom: 20px;
+            padding: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .event-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .event-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .event-venue, .event-date {
+            margin: 4px 0;
+            color: #666;
+        }
+        .event-price {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+        input, button {
+            padding: 8px;
+            margin: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Ticketmaster API</h1>
+    
+    <div class="api-key-form">
+        <h2>API Key Setup</h2>
+        <input type="password" id="apiKey" placeholder="Enter your Ticketmaster API key">
+        <button id="saveKey">Save API Key</button>
+        <button id="toggleApi">Toggle API (Mock/Ticketmaster)</button>
+        <p>Current mode: <span id="apiMode">Mock Data</span></p>
+    </div>
+    
+    <button id="loadEvents">Load Events</button>
+    <div id="events-container">
+        <p>Click "Load Events" to fetch events</p>
+    </div>
+
+    <script src="events-api-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiKeyInput = document.getElementById('apiKey');
+            const saveKeyBtn = document.getElementById('saveKey');
+            const toggleApiBtn = document.getElementById('toggleApi');
+            const apiModeSpan = document.getElementById('apiMode');
+            const loadEventsBtn = document.getElementById('loadEvents');
+            const container = document.getElementById('events-container');
+            
+            // Load saved API key if exists
+            const savedApiKey = localStorage.getItem('ticketmasterApiKey');
+            if (savedApiKey) {
+                apiKeyInput.value = savedApiKey;
+                eventsApiService.setApiKey(savedApiKey);
+            }
+            
+            // Update API mode display
+            function updateApiMode() {
+                apiModeSpan.textContent = eventsApiService.useMockData ? 'Mock Data' : 'Ticketmaster API';
+            }
+            
+            updateApiMode();
+            
+            // Save API key
+            saveKeyBtn.addEventListener('click', () => {
+                const apiKey = apiKeyInput.value.trim();
+                if (apiKey) {
+                    localStorage.setItem('ticketmasterApiKey', apiKey);
+                    eventsApiService.setApiKey(apiKey);
+                    alert('API key saved successfully!');
+                } else {
+                    alert('Please enter a valid API key');
+                }
+            });
+            
+            // Toggle API mode
+            toggleApiBtn.addEventListener('click', () => {
+                eventsApiService.setUseMockData(!eventsApiService.useMockData);
+                updateApiMode();
+                alert(`Switched to ${eventsApiService.useMockData ? 'Mock Data' : 'Ticketmaster API'}`);
+            });
+            
+            // Load events
+            loadEventsBtn.addEventListener('click', async () => {
+                try {
+                    container.innerHTML = '<p>Loading events...</p>';
+                    
+                    const eventsData = await eventsApiService.getEvents({}, 1, 10);
+                    console.log('Events data:', eventsData);
+                    
+                    if (eventsData.events && eventsData.events.length > 0) {
+                        container.innerHTML = eventsData.events.map(event => `
+                            <div class="event-card">
+                                <div class="event-title">${event.title}</div>
+                                <div class="event-venue">${event.venue}</div>
+                                <div class="event-date">${new Date(event.date).toLocaleDateString()}</div>
+                                <div class="event-price">₹${event.price.toLocaleString('en-IN')}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<p>No events found</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading events:', error);
+                    container.innerHTML = `<p>Error loading events: ${error.message}</p>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

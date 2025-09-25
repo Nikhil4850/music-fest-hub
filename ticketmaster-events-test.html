@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticketmaster Events API Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #ff006e, #8b5cf6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .api-key-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #ff006e;
+            box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff006e, #8b5cf6);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 110, 0.4);
+        }
+
+        .search-section {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .event-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 0, 110, 0.3);
+        }
+
+        .event-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #ff006e, #8b5cf6, #06b6d4);
+        }
+
+        .event-content {
+            padding: 20px;
+        }
+
+        .event-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .event-date {
+            color: #a855f7;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .event-venue {
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+
+        .event-lineup {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #ff006e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(220, 38, 38, 0.2);
+            color: #ef4444;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-ticket-alt"></i> Ticketmaster Events API Integration</h1>
+            <p>Test the integration with Ticketmaster's Discovery API for events</p>
+        </header>
+
+        <section class="api-key-section">
+            <h2>API Configuration</h2>
+            <div class="form-group">
+                <label for="apiKey">Ticketmaster API Key</label>
+                <input type="text" id="apiKey" placeholder="Enter your Ticketmaster API key">
+            </div>
+            <button id="saveApiKey">Save API Key</button>
+            <button id="toggleApiMode" style="margin-left: 10px; background: linear-gradient(135deg, #06b6d4, #8b5cf6);">
+                Switch to Mock Data
+            </button>
+        </section>
+
+        <section class="api-key-section">
+            <h2>Search Events</h2>
+            <div class="search-section">
+                <input type="text" id="searchQuery" placeholder="Search for events (e.g., concerts, festivals)">
+                <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <div class="filters">
+                <div class="form-group">
+                    <label for="cityFilter">City (optional)</label>
+                    <input type="text" id="cityFilter" placeholder="e.g., New York, Los Angeles">
+                </div>
+                <div class="form-group">
+                    <label for="genreFilter">Genre (optional)</label>
+                    <select id="genreFilter">
+                        <option value="">Any Genre</option>
+                        <option value="music">Music</option>
+                        <option value="sports">Sports</option>
+                        <option value="arts">Arts & Theatre</option>
+                        <option value="family">Family</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-section">
+            <div class="results-header">
+                <h2>Search Results</h2>
+                <div id="resultsCount">0 events found</div>
+            </div>
+            <div id="resultsContainer">
+                <p>Enter a search query above to find events</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="ticketmaster-events-service.js"></script>
+    <script>
+        // Test page for Ticketmaster Events API
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiKeyInput = document.getElementById('apiKey');
+            const saveApiKeyBtn = document.getElementById('saveApiKey');
+            const toggleApiModeBtn = document.getElementById('toggleApiMode');
+            const searchQueryInput = document.getElementById('searchQuery');
+            const cityFilterInput = document.getElementById('cityFilter');
+            const genreFilterSelect = document.getElementById('genreFilter');
+            const searchBtn = document.getElementById('searchBtn');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsCount = document.getElementById('resultsCount');
+
+            // Load saved API key if exists
+            const savedApiKey = localStorage.getItem('ticketmasterApiKey');
+            if (savedApiKey) {
+                apiKeyInput.value = savedApiKey;
+                // Update the service with the saved key
+                if (window.ticketmasterEventsService) {
+                    ticketmasterEventsService.apiKey = savedApiKey;
+                    ticketmasterEventsService.useMockData = false;
+                }
+            }
+
+            // Save API key
+            saveApiKeyBtn.addEventListener('click', () => {
+                const apiKey = apiKeyInput.value.trim();
+                if (apiKey) {
+                    localStorage.setItem('ticketmasterApiKey', apiKey);
+                    if (window.ticketmasterEventsService) {
+                        ticketmasterEventsService.apiKey = apiKey;
+                        ticketmasterEventsService.useMockData = false;
+                    }
+                    showNotification('API key saved successfully!', 'success');
+                    toggleApiModeBtn.textContent = 'Switch to Mock Data';
+                } else {
+                    showNotification('Please enter a valid API key', 'error');
+                }
+            });
+
+            // Toggle API mode
+            toggleApiModeBtn.addEventListener('click', () => {
+                if (window.ticketmasterEventsService) {
+                    ticketmasterEventsService.useMockData = !ticketmasterEventsService.useMockData;
+                    if (ticketmasterEventsService.useMockData) {
+                        toggleApiModeBtn.textContent = 'Switch to Live API';
+                        showNotification('Switched to mock data mode', 'success');
+                    } else {
+                        toggleApiModeBtn.textContent = 'Switch to Mock Data';
+                        showNotification('Switched to live API mode', 'success');
+                    }
+                }
+            });
+
+            // Search events
+            searchBtn.addEventListener('click', searchEvents);
+            searchQueryInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchEvents();
+                }
+            });
+
+            async function searchEvents() {
+                const query = searchQueryInput.value.trim();
+                const city = cityFilterInput.value.trim();
+                const genre = genreFilterSelect.value;
+
+                // Show loading state
+                resultsContainer.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Searching for events...</p>
+                    </div>
+                `;
+
+                try {
+                    // Prepare filters
+                    const filters = {};
+                    if (query) {
+                        filters.keyword = query;
+                    }
+                    if (city) {
+                        filters.city = city;
+                    }
+                    if (genre) {
+                        filters.classificationName = genre;
+                    }
+
+                    // Search for events
+                    const response = await ticketmasterEventsService.getEvents(filters);
+                    
+                    // Display results
+                    displayResults(response);
+                } catch (error) {
+                    console.error('Error searching events:', error);
+                    resultsContainer.innerHTML = `
+                        <div class="error">
+                            <p>Error searching events: ${error.message}</p>
+                            <p>Please check your API key and try again.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function displayResults(response) {
+                const events = response.events || [];
+                resultsCount.textContent = `${events.length} events found`;
+
+                if (events.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <p>No events found for your search. Try a different query.</p>
+                    `;
+                    return;
+                }
+
+                const eventsHTML = events.map(event => `
+                    <div class="event-card">
+                        <div class="event-image" style="background-image: url('${event.image || 'https://placehold.co/600x400?text=No+Image'}'); background-size: cover;"></div>
+                        <div class="event-content">
+                            <div class="event-date">${new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                            <h3 class="event-title">${event.name}</h3>
+                            <div class="event-venue">${event.venue}</div>
+                            <div class="event-lineup">Featuring: ${event.lineup.slice(0, 3).join(', ')}${event.lineup.length > 3 ? '...' : ''}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                resultsContainer.innerHTML = `
+                    <div class="events-grid">
+                        ${eventsHTML}
+                    </div>
+                `;
+            }
+
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                // Remove notification after 3 seconds
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Events App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+        }
+        button {
+            padding: 10px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test Events App</h1>
+        
+        <div class="step">
+            <h3>Step 1: Test API Service</h3>
+            <button id="test-service">Test API Service</button>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Test EventsApp Class</h3>
+            <button id="test-class">Test EventsApp Class</button>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Test Full Initialization</h3>
+            <button id="test-init">Test Full Initialization</button>
+        </div>
+        
+        <div class="log" id="log">
+            Ready to test...
+        </div>
+    </div>
+
+    <script src="events-api-service.js"></script>
+    <script src="events-script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const logElement = document.getElementById('log');
+            
+            function log(message, isError = false) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                logElement.innerHTML += `\n${logEntry}`;
+                logElement.scrollTop = logElement.scrollHeight;
+                
+                if (isError) {
+                    logElement.classList.add('error');
+                }
+            }
+            
+            function clearLog() {
+                logElement.innerHTML = 'Ready to test...';
+                logElement.classList.remove('error');
+            }
+            
+            // Test API service
+            document.getElementById('test-service').addEventListener('click', () => {
+                clearLog();
+                log('Testing API service...');
+                
+                try {
+                    if (typeof eventsApiService === 'undefined') {
+                        throw new Error('eventsApiService is not defined');
+                    }
+                    
+                    log('✓ eventsApiService is available');
+                    log(`✓ useMockData: ${eventsApiService.useMockData}`);
+                    log(`✓ API key: ${eventsApiService.apiKey ? 'Set' : 'Not set'}`);
+                    log('✓ API service test completed successfully');
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                }
+            });
+            
+            // Test EventsApp class
+            document.getElementById('test-class').addEventListener('click', () => {
+                clearLog();
+                log('Testing EventsApp class...');
+                
+                try {
+                    if (typeof EventsApp === 'undefined') {
+                        throw new Error('EventsApp class is not defined');
+                    }
+                    
+                    log('✓ EventsApp class is available');
+                    log('Creating instance of EventsApp...');
+                    
+                    // Create a mock instance to test the class
+                    const mockApp = new EventsApp();
+                    log('✓ EventsApp instance created successfully');
+                    log(`✓ Events array: ${Array.isArray(mockApp.events) ? 'Yes' : 'No'}`);
+                    log(`✓ Current page: ${mockApp.currentPage}`);
+                    log('✓ EventsApp class test completed successfully');
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                    console.error(error);
+                }
+            });
+            
+            // Test full initialization
+            document.getElementById('test-init').addEventListener('click', async () => {
+                clearLog();
+                log('Testing full initialization...');
+                
+                try {
+                    log('Creating EventsApp instance...');
+                    const app = new EventsApp();
+                    log('✓ EventsApp instance created');
+                    
+                    log('Initializing app...');
+                    await app.init();
+                    log('✓ App initialized successfully');
+                    
+                    log(`✓ Events loaded: ${app.events.length}`);
+                    log(`✓ Filtered events: ${app.filteredEvents.length}`);
+                    log('✓ Full initialization test completed successfully');
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                    console.error(error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

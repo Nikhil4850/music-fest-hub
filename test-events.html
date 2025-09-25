@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Events Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .event-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .event-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .event-venue, .event-date {
+            margin: 4px 0;
+            color: #666;
+        }
+        .event-price {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Events Page</h1>
+    <div id="events-container">
+        <p>Loading events...</p>
+    </div>
+
+    <script src="events-api-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('events-container');
+            
+            try {
+                console.log('Loading events...');
+                const eventsData = await eventsApiService.getEvents({}, 1, 10);
+                console.log('Events data:', eventsData);
+                
+                if (eventsData.events && eventsData.events.length > 0) {
+                    container.innerHTML = eventsData.events.map(event => `
+                        <div class="event-card">
+                            <div class="event-title">${event.title}</div>
+                            <div class="event-venue">${event.venue}</div>
+                            <div class="event-date">${new Date(event.date).toLocaleDateString()}</div>
+                            <div class="event-price">₹${event.price.toLocaleString('en-IN')}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>No events found</p>';
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+                container.innerHTML = `<p>Error loading events: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

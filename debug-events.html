@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Events Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .debug-info {
+            background-color: #f0f0f0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .event-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .event-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .event-venue, .event-date {
+            margin: 4px 0;
+            color: #666;
+        }
+        .event-price {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 4px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Events Page</h1>
+    
+    <div class="debug-info">
+        <h2>Debug Information</h2>
+        <p>Status: <span id="status">Initializing...</span></p>
+        <p>Error: <span id="error-message">None</span></p>
+        <button id="test-api">Test API Service</button>
+        <button id="test-events">Test Events Loading</button>
+        <button id="test-render">Test Event Rendering</button>
+    </div>
+    
+    <div id="events-container">
+        <p>Events will appear here</p>
+    </div>
+
+    <script src="events-api-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusSpan = document.getElementById('status');
+            const errorMessageSpan = document.getElementById('error-message');
+            const testApiBtn = document.getElementById('test-api');
+            const testEventsBtn = document.getElementById('test-events');
+            const testRenderBtn = document.getElementById('test-render');
+            const container = document.getElementById('events-container');
+            
+            // Update status
+            function updateStatus(message) {
+                statusSpan.textContent = message;
+                console.log('Status:', message);
+            }
+            
+            // Update error
+            function updateError(error) {
+                errorMessageSpan.textContent = error.message || error;
+                errorMessageSpan.style.color = 'red';
+                console.error('Error:', error);
+            }
+            
+            // Clear error
+            function clearError() {
+                errorMessageSpan.textContent = 'None';
+                errorMessageSpan.style.color = 'black';
+            }
+            
+            updateStatus('DOM Loaded');
+            
+            // Test API service
+            testApiBtn.addEventListener('click', () => {
+                try {
+                    updateStatus('Testing API service...');
+                    clearError();
+                    
+                    if (typeof eventsApiService === 'undefined') {
+                        throw new Error('eventsApiService is not defined');
+                    }
+                    
+                    if (typeof eventsApiService.getEvents !== 'function') {
+                        throw new Error('eventsApiService.getEvents is not a function');
+                    }
+                    
+                    updateStatus('API service is available');
+                } catch (error) {
+                    updateError(error);
+                }
+            });
+            
+            // Test events loading
+            testEventsBtn.addEventListener('click', async () => {
+                try {
+                    updateStatus('Loading events...');
+                    clearError();
+                    
+                    const eventsData = await eventsApiService.getEvents({}, 1, 5);
+                    console.log('Events data:', eventsData);
+                    
+                    if (eventsData.events && eventsData.events.length > 0) {
+                        updateStatus(`Loaded ${eventsData.events.length} events`);
+                    } else {
+                        updateStatus('No events found');
+                    }
+                } catch (error) {
+                    updateError(error);
+                }
+            });
+            
+            // Test event rendering
+            testRenderBtn.addEventListener('click', async () => {
+                try {
+                    updateStatus('Rendering events...');
+                    clearError();
+                    
+                    const eventsData = await eventsApiService.getEvents({}, 1, 5);
+                    
+                    if (eventsData.events && eventsData.events.length > 0) {
+                        container.innerHTML = eventsData.events.map(event => `
+                            <div class="event-card">
+                                <div class="event-title">${event.title}</div>
+                                <div class="event-venue">${event.venue}</div>
+                                <div class="event-date">${new Date(event.date).toLocaleDateString()}</div>
+                                <div class="event-price">₹${event.price.toLocaleString('en-IN')}</div>
+                            </div>
+                        `).join('');
+                        updateStatus(`Rendered ${eventsData.events.length} events`);
+                    } else {
+                        container.innerHTML = '<p>No events to render</p>';
+                        updateStatus('No events to render');
+                    }
+                } catch (error) {
+                    updateError(error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

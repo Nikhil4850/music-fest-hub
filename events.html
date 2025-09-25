@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Festivals - Music Festival Hub</title>
+    <link rel="stylesheet" href="events-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Logo -->
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fas fa-arrow-left" style="margin-right: 12px; font-size: 1.2rem;"></i>
+                    <i class="fas fa-music"></i>
+                    <span>Music Festival Hub</span>
+                </a>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Search for Music Festivals, Artists, Venues" id="searchInput">
+                </div>
+                
+                <div class="city-selector">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <select id="citySelector">
+                        <option value="mumbai">Mumbai</option>
+                        <option value="delhi">Delhi</option>
+                        <option value="bangalore">Bangalore</option>
+                        <option value="pune">Pune</option>
+                        <option value="hyderabad">Hyderabad</option>
+                        <option value="chennai">Chennai</option>
+                        <option value="kolkata">Kolkata</option>
+                        <option value="ahmedabad">Ahmedabad</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- User Section -->
+            <div class="user-section">
+                <div class="user-profile" id="userProfile">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userDisplayName">Login</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Filter Toggle -->
+    <div class="mobile-filter-toggle">
+        <button class="filter-toggle-btn" id="mobileFilterBtn">
+            <i class="fas fa-filter"></i>
+            <span>Filters</span>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar Filters -->
+        <aside class="filters-sidebar" id="filtersSidebar">
+            <div class="filters-header">
+                <h3>Filters</h3>
+                <button class="clear-filters" id="clearFilters">Clear All</button>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="filter-section">
+                <h4 class="filter-title">Date</h4>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="radio" name="date" value="today">
+                        <span class="checkmark"></span>
+                        Today
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="date" value="tomorrow">
+                        <span class="checkmark"></span>
+                        Tomorrow
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="date" value="weekend">
+                        <span class="checkmark"></span>
+                        This Weekend
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="date" value="week">
+                        <span class="checkmark"></span>
+                        This Week
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="date" value="month">
+                        <span class="checkmark"></span>
+                        This Month
+                    </label>
+                </div>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="filter-section">
+                <h4 class="filter-title">Location</h4>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="mumbai">
+                        <span class="checkmark"></span>
+                        Mumbai
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="delhi">
+                        <span class="checkmark"></span>
+                        Delhi
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="bangalore">
+                        <span class="checkmark"></span>
+                        Bangalore
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="pune">
+                        <span class="checkmark"></span>
+                        Pune
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="chennai">
+                        <span class="checkmark"></span>
+                        Chennai
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="hyderabad">
+                        <span class="checkmark"></span>
+                        Hyderabad
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="kolkata">
+                        <span class="checkmark"></span>
+                        Kolkata
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="ahmedabad">
+                        <span class="checkmark"></span>
+                        Ahmedabad
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="location" value="goa">
+                        <span class="checkmark"></span>
+                        Goa
+                    </label>
+                </div>
+            </div>
+
+            <!-- Music Genres Filter -->
+            <div class="filter-section">
+                <h4 class="filter-title">Music Genres</h4>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="edm">
+                        <span class="checkmark"></span>
+                        EDM/Electronic
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="rock">
+                        <span class="checkmark"></span>
+                        Rock/Metal
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="indie">
+                        <span class="checkmark"></span>
+                        Indie/Alternative
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="hip-hop">
+                        <span class="checkmark"></span>
+                        Hip-Hop/Rap
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="pop">
+                        <span class="checkmark"></span>
+                        Pop/Mainstream
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="jazz">
+                        <span class="checkmark"></span>
+                        Jazz/Blues
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="folk">
+                        <span class="checkmark"></span>
+                        Folk/World
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="multi-genre">
+                        <span class="checkmark"></span>
+                        Multi-Genre
+                    </label>
+                </div>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="filter-section">
+                <h4 class="filter-title">Price Range</h4>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="price" value="free">
+                        <span class="checkmark"></span>
+                        Free
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="price" value="0-500">
+                        <span class="checkmark"></span>
+                        ₹0 - ₹500
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="price" value="500-1500">
+                        <span class="checkmark"></span>
+                        ₹500 - ₹1,500
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="price" value="1500-3000">
+                        <span class="checkmark"></span>
+                        ₹1,500 - ₹3,000
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="price" value="3000+">
+                        <span class="checkmark"></span>
+                        ₹3,000+
+                    </label>
+                </div>
+            </div>
+
+            <!-- Language Filter -->
+            <div class="filter-section">
+                <h4 class="filter-title">Language</h4>
+                <div class="filter-options">
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="hindi">
+                        <span class="checkmark"></span>
+                        Hindi
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="english">
+                        <span class="checkmark"></span>
+                        English
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="tamil">
+                        <span class="checkmark"></span>
+                        Tamil
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="telugu">
+                        <span class="checkmark"></span>
+                        Telugu
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="kannada">
+                        <span class="checkmark"></span>
+                        Kannada
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="multi">
+                        <span class="checkmark"></span>
+                        Multi-Language
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="punjabi">
+                        <span class="checkmark"></span>
+                        Punjabi
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="bengali">
+                        <span class="checkmark"></span>
+                        Bengali
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="gujarati">
+                        <span class="checkmark"></span>
+                        Gujarati
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="language" value="marathi">
+                        <span class="checkmark"></span>
+                        Marathi
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Content Header -->
+            <div class="content-header">
+                <div class="results-info">
+                    <h2>Music Festivals in <span id="selectedCity">Mumbai</span></h2>
+                    <p id="resultsCount">12 music festivals found</p>
+                </div>
+                
+                <div class="sort-section">
+                    <label for="sortBy">Sort by:</label>
+                    <select id="sortBy">
+                        <option value="relevance">Relevance</option>
+                        <option value="date">Date</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="popularity">Popularity</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div class="events-grid" id="eventsGrid">
+                <!-- Sunburn Festival -->
+                <div class="event-card" data-event-id="1" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Sunburn Festival" loading="lazy">
+                        <div class="event-category">EDM Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Sunburn Festival 2024</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Dec 28-30, 2024</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Vagator Beach, Goa</span>
+                            </div>
+                        </div>
+                        <div class="event-lineup">
+                            <span>Featuring: Martin Garrix, Armin van Buuren, Nucleya</span>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹4,500</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">25.8K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tomorrowland India -->
+                <div class="event-card" data-event-id="2" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Tomorrowland India" loading="lazy">
+                        <div class="event-category">EDM Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Tomorrowland India</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Jan 15-16, 2025</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>DY Patil Stadium, Mumbai</span>
+                            </div>
+                        </div>
+                        <div class="event-lineup">
+                            <span>Featuring: Tiësto, David Guetta, Hardwell</span>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹6,500</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">42.3K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example Music Festival -->
+                <div class="event-card" data-event-id="3" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Rock Fest" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Rock Fest India</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Dec 16</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Palace Grounds, Bangalore</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹3,200</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">9.7K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example Concert -->
+                <div class="event-card" data-event-id="4" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Jazz Evening" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Jazz Evening with Louis Cole</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Dec 23</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>The Jazz Gallery, Delhi</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹1,800</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">3.4K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example Music Festival -->
+                <div class="event-card" data-event-id="5" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Indie Music Fest" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Indie Music Fest</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Dec 23</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Rock Garden, Pune</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹2,000</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">6.1K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 1 -->
+                <div class="event-card" data-event-id="6" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795411000-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Classical Symphony Night" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Classical Symphony Night</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Dec 23</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Music Academy, Chennai</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹1,500</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">2.8K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 2 -->
+                <div class="event-card" data-event-id="7" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Hip Hop Festival" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Hip Hop Festival</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Dec 30</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Hitech City Grounds, Hyderabad</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹3,800</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">11.2K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 3 -->
+                <div class="event-card" data-event-id="8" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1514525620448-910c5c7ca650?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Blues & BBQ Festival" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Blues & BBQ Festival</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Dec 30</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Victoria Memorial, Kolkata</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹2,200</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">5.4K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 4 -->
+                <div class="event-card" data-event-id="9" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Electronic Music Summit" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Electronic Music Summit</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Dec 30</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Science City, Ahmedabad</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹2,900</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">7.6K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 5 -->
+                <div class="event-card" data-event-id="10" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Folk Music Heritage" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Folk Music Heritage</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 6</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>NCPA, Mumbai</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹1,200</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">4.2K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 6 -->
+                <div class="event-card" data-event-id="11" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Pop Icons Live" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Pop Icons Live</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 6</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Dilli Haat, Delhi</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹5,500</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">15.6K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 7 -->
+                <div class="event-card" data-event-id="12" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Reggae Sunsplash" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Reggae Sunsplash</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 6</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Anjuna Beach, Goa</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹4,100</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">9.8K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 8 -->
+                <div class="event-card" data-event-id="13" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Country Roads Festival" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Country Roads Festival</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 13</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Cubbon Park, Bangalore</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹2,700</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">6.9K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 9 -->
+                <div class="event-card" data-event-id="14" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1574391884720-bbc0878f3d5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Heavy Metal Thunder" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Heavy Metal Thunder</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 13</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Pune Race Course, Pune</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹3,300</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">8.4K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 10 -->
+                <div class="event-card" data-event-id="15" onclick="navigateToEventDetails(this)">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1598387993441-a364f854c3e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="World Music Festival" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">World Music Festival</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 13</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Marina Beach, Chennai</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹2,600</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">11.5K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 11 -->
+                <div class="event-card" data-event-id="16">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410180-8b6d9d2e4a8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Bollywood Night" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Bollywood Night</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 20</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Film City, Mumbai</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹2,800</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">13.2K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 12 -->
+                <div class="event-card" data-event-id="17">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410100-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Tamil Music Festival" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Tamil Music Festival</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 20</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Phoenix Market City, Chennai</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹3,500</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">9.8K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 13 -->
+                <div class="event-card" data-event-id="18">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410200-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Punjabi Dhol Festival" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Punjabi Dhol Festival</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 20</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Kingdom of Dreams, Delhi</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹2,200</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">7.5K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 14 -->
+                <div class="event-card" data-event-id="19">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410300-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Classical Dance Performance" loading="lazy">
+                        <div class="event-category">Dance</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Classical Dance Performance</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 27</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Ravindra Kalakshetra, Bangalore</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹1,600</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">4.3K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 15 -->
+                <div class="event-card" data-event-id="20">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410400-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Comedy Night Live" loading="lazy">
+                        <div class="event-category">Comedy Shows</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Comedy Night Live</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 27</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>The Comedy Store, Pune</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹1,200</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">5.6K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 16 -->
+                <div class="event-card" data-event-id="21">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Telugu Cinema Songs" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Telugu Cinema Songs</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Jan 27</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Gachibowli Stadium, Hyderabad</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹3,100</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">12.4K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 17 -->
+                <div class="event-card" data-event-id="22">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410600-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Kolkata Theatre Festival" loading="lazy">
+                        <div class="event-category">Theatre</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Kolkata Theatre Festival</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Feb 3</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Academy of Fine Arts, Kolkata</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹1,800</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">3.9K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 18 -->
+                <div class="event-card" data-event-id="23">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410700-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Gujarati Folk Music" loading="lazy">
+                        <div class="event-category">Concerts</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Gujarati Folk Music</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Feb 3</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Kite Festival Ground, Ahmedabad</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹1,300</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">4.7K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 19 -->
+                <div class="event-card" data-event-id="24">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410800-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Electronic Trance Night" loading="lazy">
+                        <div class="event-category">Music Festival</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Electronic Trance Night</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Feb 3</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Tito's Lane, Goa</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹4,200</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">8.9K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Event 20 -->
+                <div class="event-card" data-event-id="25">
+                    <div class="event-poster">
+                        <img src="https://images.unsplash.com/photo-1511795410900-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Marathi Drama Performance" loading="lazy">
+                        <div class="event-category">Theatre</div>
+                    </div>
+                    <div class="event-details">
+                        <h3 class="event-title">Marathi Drama Performance</h3>
+                        <div class="event-date-venue">
+                            <div class="event-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Sat, Feb 10</span>
+                            </div>
+                            <div class="event-venue">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Prithvi Theatre, Mumbai</span>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="event-price">
+                                <span class="price-from">From</span>
+                                <strong>₹900</strong>
+                            </div>
+                            <div class="event-interested">
+                                <i class="fas fa-heart"></i>
+                                <span class="interested-count">3.2K</span>
+                                <span>interested</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Load More Section -->
+            <div class="load-more-section">
+                <button class="load-more-btn" id="loadMoreBtn">
+                    <span>Load More Events</span>
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Filter Overlay -->
+    <div class="mobile-filter-overlay" id="mobileFilterOverlay">
+        <div class="mobile-filter-content">
+            <div class="mobile-filter-header">
+                <h3>Filters</h3>
+                <button class="close-mobile-filter" id="closeMobileFilter">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Filter content will be cloned here for mobile -->
+        </div>
+    </div>
+
+    <script src="events-script.js"></script>
+    <script>
+        // Function to navigate to event details page with event data
+        function navigateToEventDetails(eventCard) {
+            // Extract event data from the card
+            const eventData = {
+                id: eventCard.getAttribute('data-event-id'),
+                title: eventCard.querySelector('.event-title').textContent,
+                date: eventCard.querySelector('.event-date span').textContent,
+                venue: eventCard.querySelector('.event-venue span').textContent,
+                category: eventCard.querySelector('.event-category').textContent,
+                price: eventCard.querySelector('.event-price strong').textContent,
+                interested: eventCard.querySelector('.interested-count').textContent,
+                image: eventCard.querySelector('.event-poster img').src,
+                lineup: eventCard.querySelector('.event-lineup span') ? eventCard.querySelector('.event-lineup span').textContent : ''
+            };
+            
+            // Store event data in localStorage
+            localStorage.setItem('selectedEvent', JSON.stringify(eventData));
+            
+            // Navigate to event details page
+            window.location.href = 'event-details.html';
+        }
+    </script>
+</body>
+</html>

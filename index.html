@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Festival Hub - Step Into the Festival</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">Music Festival Hub</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="events.html" class="nav-link">Events</a></li>
+                <li><a href="#my-bookings" class="nav-link">My Bookings</a></li>
+                <li><a href="login.html" class="nav-link">Login</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Particle Background -->
+    <div class="particles-container" id="particles"></div>
+    
+    <!-- Video Background -->
+    <div class="video-background">
+        <video id="bgVideo" autoplay muted loop playsinline preload="auto">
+            <source src="festival-background.mp4" type="video/mp4">
+            <source src="https://assets.codepen.io/3364143/screen-record.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">Your Gateway to</span>
+                <span class="title-main">Music Festivals</span>
+            </h1>
+            <p class="hero-subtitle">Discover, book, and experience the world's most electrifying music festivals all in one place</p>
+            <div class="hero-buttons">
+                <button class="cta-button primary" onclick="window.location.href='events.html'">
+                    <span>Book Tickets Now</span>
+                    <div class="button-glow"></div>
+                </button>
+                <button class="cta-button secondary" onclick="window.location.href='events.html'">
+                    <span>Browse Events</span>
+                    <div class="button-glow"></div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator">
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- Preview Section -->
+    <section class="preview-section">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card" data-feature="lineup">
+                    <div class="card-icon">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <h3>Epic Lineup</h3>
+                    <p>World-class artists and emerging talents across multiple genres</p>
+                    <div class="card-glow"></div>
+                </div>
+                
+                <div class="feature-card" data-feature="stages">
+                    <div class="card-icon">
+                        <i class="fas fa-guitar"></i>
+                    </div>
+                    <h3>Multiple Stages</h3>
+                    <p>Experience diverse performances across uniquely designed stages</p>
+                    <div class="card-glow"></div>
+                </div>
+                
+                <div class="feature-card" data-feature="tickets">
+                    <div class="card-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h3>Premium Tickets</h3>
+                    <p>VIP experiences, general admission, and exclusive backstage access</p>
+                    <div class="card-glow"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lineup Section -->
+    <section class="lineup-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Featured Lineup</h2>
+                <p class="section-subtitle">Discover the incredible artists performing at our upcoming festivals</p>
+            </div>
+            
+            <div class="lineup-grid">
+                <div class="artist-card">
+                    <div class="artist-image">
+                        <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="DJ Snake">
+                    </div>
+                    <div class="artist-info">
+                        <h3>DJ Snake</h3>
+                        <p class="artist-genre">EDM</p>
+                        <p class="artist-description">International DJ and producer known for chart-topping hits and electrifying performances.</p>
+                    </div>
+                </div>
+                
+                <div class="artist-card">
+                    <div class="artist-image">
+                        <img src="https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Queen">
+                    </div>
+                    <div class="artist-info">
+                        <h3>Queen</h3>
+                        <p class="artist-genre">Rock</p>
+                        <p class="artist-description">Legendary rock band with iconic hits and unforgettable live performances.</p>
+                    </div>
+                </div>
+                
+                <div class="artist-card">
+                    <div class="artist-image">
+                        <img src="https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="BTS">
+                    </div>
+                    <div class="artist-info">
+                        <h3>BTS</h3>
+                        <p class="artist-genre">K-pop</p>
+                        <p class="artist-description">Global phenomenon known for their music, performances, and connection with fans.</p>
+                    </div>
+                </div>
+                
+                <div class="artist-card">
+                    <div class="artist-image">
+                        <img src="https://images.unsplash.com/photo-1511671681180-f1d8b330bde4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Eminem">
+                    </div>
+                    <div class="artist-info">
+                        <h3>Eminem</h3>
+                        <p class="artist-genre">Hip Hop</p>
+                        <p class="artist-description">Award-winning rapper known for his technical skill and powerful lyrics.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lineup-actions">
+                <button class="cta-button primary" onclick="window.location.href='events.html'">
+                    <span>View Full Lineup</span>
+                    <div class="button-glow"></div>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main App Container -->
+    <div class="app-container" id="app">
+        <!-- Events Page -->
+        <section class="page events-page" id="events" style="display: none;">
+            <div class="container">
+                <div class="page-header">
+                    <h2 class="page-title">Upcoming Festivals</h2>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="grid">Grid</button>
+                        <button class="view-btn" data-view="list">List</button>
+                    </div>
+                </div>
+                
+                <div class="events-grid" id="eventsGrid">
+                    <!-- Events will be dynamically loaded -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Details Page -->
+        <section class="page event-details-page" id="event-details" style="display: none;">
+            <div class="event-banner" id="eventBanner">
+                <!-- Dynamic banner content -->
+            </div>
+            
+            <div class="container">
+                <div class="event-tabs">
+                    <button class="tab-btn active" data-tab="lineup">Lineup</button>
+                    <button class="tab-btn" data-tab="stages">Stages</button>
+                    <button class="tab-btn" data-tab="about">About</button>
+                    <button class="tab-btn" data-tab="tickets">Tickets</button>
+                </div>
+                
+                <div class="tab-content" id="tabContent">
+                    <!-- Dynamic tab content -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Booking Page -->
+        <section class="page booking-page" id="booking" style="display: none;">
+            <div class="container">
+                <div class="booking-container">
+                    <div class="booking-form-section">
+                        <h2>Book Your Tickets</h2>
+                        <form class="booking-form" id="bookingForm">
+                            <div class="form-group">
+                                <label for="fullName">Full Name</label>
+                                <input type="text" id="fullName" name="fullName" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ticketType">Ticket Type</label>
+                                    <select id="ticketType" name="ticketType" required>
+                                        <option value="">Select Ticket Type</option>
+                                        <option value="regular" data-price="99">Regular - $99</option>
+                                        <option value="vip" data-price="199">VIP - $199</option>
+                                        <option value="backstage" data-price="299">Backstage - $299</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="quantity">Quantity</label>
+                                    <input type="number" id="quantity" name="quantity" min="1" max="10" value="1" required>
+                                </div>
+                            </div>
+                            
+                            <div class="price-summary">
+                                <div class="price-breakdown">
+                                    <div class="price-line">
+                                        <span>Ticket Price:</span>
+                                        <span id="ticketPrice">$0</span>
+                                    </div>
+                                    <div class="price-line">
+                                        <span>Quantity:</span>
+                                        <span id="ticketQuantity">0</span>
+                                    </div>
+                                    <div class="price-line total">
+                                        <span>Total:</span>
+                                        <span id="totalPrice">$0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="payment-section">
+                                <h3>Payment Information</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="cardNumber">Card Number</label>
+                                        <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="expiryDate">Expiry Date</label>
+                                        <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="cvv">CVV</label>
+                                        <input type="text" id="cvv" name="cvv" placeholder="123" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="cta-button primary book-btn">
+                                <span>Complete Booking</span>
+                                <div class="button-glow"></div>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="booking-summary" id="bookingSummary">
+                        <!-- Dynamic booking summary -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- My Bookings Page -->
+        <section class="page bookings-page" id="my-bookings" style="display: none;">
+            <div class="container">
+                <h2 class="page-title">My Bookings</h2>
+                <div class="bookings-list" id="bookingsList">
+                    <!-- Dynamic bookings content -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Confirmation Page -->
+        <section class="page confirmation-page" id="confirmation" style="display: none;">
+            <div class="container">
+                <div class="confirmation-content">
+                    <!-- Animation Container -->
+                    <div class="ticket-animation-container">
+                        <div class="child-character" id="childCharacter">
+                            <div class="child-body"></div>
+                            <div class="child-head"></div>
+                            <div class="child-arm"></div>
+                            <div class="child-leg"></div>
+                        </div>
+                        <div class="ticket-element" id="ticketElement">
+                            <div class="ticket-front">
+                                <div class="ticket-logo">🎟️</div>
+                                <div class="ticket-text">TICKET</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Success Content (Initially hidden) -->
+                    <div class="success-content" id="successContent" style="display: none;">
+                        <div class="success-icon">🎉</div>
+                        <h2>Booking Successful!</h2>
+                        <p>Your tickets have been booked successfully. Check your email for confirmation details.</p>
+                        <div class="confirmation-actions">
+                            <button class="cta-button primary" onclick="navigateTo('my-bookings')">
+                                <span>View My Bookings</span>
+                                <div class="button-glow"></div>
+                            </button>
+                            <button class="cta-button secondary" onclick="navigateTo('events')">
+                                <span>Book More Tickets</span>
+                                <div class="button-glow"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section about-section">
+                    <h3>About Music Festival Hub</h3>
+                    <p>Music Festival Hub is your ultimate destination for discovering and booking tickets to the world's most incredible music festivals. We connect music lovers with unforgettable experiences, bringing together diverse artists, passionate fans, and the magic of live music.</p>
+                    <p>From intimate indie gatherings to massive electronic dance festivals, we curate the best events across all genres. Join thousands of festival-goers who trust us to deliver authentic, safe, and extraordinary musical journeys.</p>
+                </div>
+                
+                <div class="footer-section contact-section">
+                    <h3>Get In Touch</h3>
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i> info@musicfestivalhub.com</p>
+                        <p><i class="fas fa-phone"></i> +1 (555) 123-FEST</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Music Street, Festival City, FC 12345</p>
+                    </div>
+                </div>
+                
+                <div class="footer-section social-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="copyright"> 2024 Music Festival Hub. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="ticketmaster-events-service.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        // Force video to play
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('bgVideo');
+            
+            if (video) {
+                // Try to play the video
+                video.play().catch(function(error) {
+                    console.log('Video autoplay failed:', error);
+                    // If autoplay fails, try again on user interaction
+                    document.addEventListener('click', function() {
+                        video.play().catch(e => console.log('Manual play failed:', e));
+                    }, { once: true });
+                });
+                
+                // Debug video loading
+                video.addEventListener('loadstart', () => console.log('Video loading started'));
+                video.addEventListener('canplay', () => console.log('Video can play'));
+                video.addEventListener('error', (e) => console.log('Video error:', e));
+            }
+        });
+    </script>
+</body>
+</html>

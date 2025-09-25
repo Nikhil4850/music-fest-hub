@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Events Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+        }
+        button {
+            padding: 10px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .event-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .event-image {
+            height: 150px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        .event-details {
+            padding: 15px;
+        }
+        .event-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .event-info {
+            margin: 5px 0;
+            color: #666;
+        }
+        .event-price {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Final Events Test</h1>
+            <p>Testing the complete events loading and display system</p>
+        </div>
+        
+        <div class="controls">
+            <h2>Controls</h2>
+            <button id="init-app">Initialize Events App</button>
+            <button id="load-events">Load Events</button>
+            <button id="render-events">Render Events</button>
+            <button id="clear-events">Clear Events</button>
+            
+            <div class="log" id="log">
+                Ready to test...
+            </div>
+        </div>
+        
+        <div class="events-grid" id="events-grid">
+            <p>Events will appear here</p>
+        </div>
+    </div>
+
+    <script src="events-api-service.js"></script>
+    <script src="events-script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const logElement = document.getElementById('log');
+            const eventsGrid = document.getElementById('events-grid');
+            let eventsApp = null;
+            
+            function log(message, isError = false) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+                logElement.innerHTML += `\n${logEntry}`;
+                logElement.scrollTop = logElement.scrollHeight;
+                
+                if (isError) {
+                    logElement.classList.add('error');
+                } else {
+                    logElement.classList.remove('error');
+                }
+            }
+            
+            function clearLog() {
+                logElement.innerHTML = 'Ready to test...';
+                logElement.classList.remove('error');
+            }
+            
+            // Initialize Events App
+            document.getElementById('init-app').addEventListener('click', () => {
+                clearLog();
+                log('Initializing EventsApp...');
+                
+                try {
+                    if (typeof EventsApp === 'undefined') {
+                        throw new Error('EventsApp class is not defined');
+                    }
+                    
+                    eventsApp = new EventsApp();
+                    log('✓ EventsApp initialized successfully');
+                    log(`✓ Events array: ${Array.isArray(eventsApp.events) ? 'Yes' : 'No'}`);
+                    log(`✓ Current page: ${eventsApp.currentPage}`);
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                    console.error(error);
+                }
+            });
+            
+            // Load events
+            document.getElementById('load-events').addEventListener('click', async () => {
+                clearLog();
+                log('Loading events...');
+                
+                try {
+                    if (!eventsApp) {
+                        throw new Error('EventsApp not initialized. Click "Initialize Events App" first.');
+                    }
+                    
+                    await eventsApp.loadEvents();
+                    log(`✓ Events loaded: ${eventsApp.events.length}`);
+                    log(`✓ Filtered events: ${eventsApp.filteredEvents.length}`);
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                    console.error(error);
+                }
+            });
+            
+            // Render events
+            document.getElementById('render-events').addEventListener('click', () => {
+                clearLog();
+                log('Rendering events...');
+                
+                try {
+                    if (!eventsApp) {
+                        throw new Error('EventsApp not initialized. Click "Initialize Events App" first.');
+                    }
+                    
+                    if (eventsApp.filteredEvents.length === 0) {
+                        throw new Error('No events to render. Click "Load Events" first.');
+                    }
+                    
+                    eventsApp.renderEvents();
+                    log('✓ Events rendered successfully');
+                } catch (error) {
+                    log(`✗ Error: ${error.message}`, true);
+                    console.error(error);
+                }
+            });
+            
+            // Clear events
+            document.getElementById('clear-events').addEventListener('click', () => {
+                clearLog();
+                eventsGrid.innerHTML = '<p>Events will appear here</p>';
+                log('Events cleared');
+            });
+        });
+    </script>
+</body>
+</html>
