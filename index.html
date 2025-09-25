@@ -15,12 +15,15 @@
             <div class="nav-logo">
                 <span class="logo-text">Music Festival Hub</span>
             </div>
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link active">Home</a></li>
-                <li><a href="events.html" class="nav-link">Events</a></li>
-                <li><a href="#my-bookings" class="nav-link">My Bookings</a></li>
-                <li><a href="login.html" class="nav-link">Login</a></li>
-            </ul>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="events.html" class="nav-link">Events</a>
+                <a href="bookings.html" class="nav-link">My Bookings</a>
+                <a href="about.html" class="nav-link">About</a>
+                <div id="authSection">
+                    <a href="login.html" class="nav-link login-btn">Login</a>
+                </div>
+            </div>
             <div class="nav-toggle">
                 <span></span>
                 <span></span>
@@ -82,12 +85,16 @@
                     <div class="card-glow"></div>
                 </div>
                 
-                <div class="feature-card" data-feature="stages">
+                <div class="feature-card interactive-stage-card" data-feature="stages" onclick="openStagePreview()">
                     <div class="card-icon">
                         <i class="fas fa-guitar"></i>
                     </div>
                     <h3>Multiple Stages</h3>
                     <p>Experience diverse performances across uniquely designed stages</p>
+                    <div class="stage-preview-hint">
+                        <i class="fas fa-eye"></i>
+                        <span>Click to explore stages</span>
+                    </div>
                     <div class="card-glow"></div>
                 </div>
                 
@@ -114,45 +121,45 @@
             <div class="lineup-grid">
                 <div class="artist-card">
                     <div class="artist-image">
-                        <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="DJ Snake">
+                        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Arijit Singh">
                     </div>
                     <div class="artist-info">
-                        <h3>DJ Snake</h3>
-                        <p class="artist-genre">EDM</p>
-                        <p class="artist-description">International DJ and producer known for chart-topping hits and electrifying performances.</p>
+                        <h3>Arijit Singh</h3>
+                        <p class="artist-genre">Bollywood Playback</p>
+                        <p class="artist-description">India's most beloved playback singer known for soulful melodies and romantic ballads.</p>
                     </div>
                 </div>
                 
                 <div class="artist-card">
                     <div class="artist-image">
-                        <img src="https://images.unsplash.com/photo-1514329530649-768109189420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Queen">
+                        <img src="https://www.iwmbuzz.com/wp-content/uploads/2023/04/armaan-malik-enjoys-stage-life-from-last-night-concert-fans-cant-thank-enough-4-736x920.jpg" alt="Armaan Malik">
                     </div>
                     <div class="artist-info">
-                        <h3>Queen</h3>
-                        <p class="artist-genre">Rock</p>
-                        <p class="artist-description">Legendary rock band with iconic hits and unforgettable live performances.</p>
+                        <h3>Armaan Malik</h3>
+                        <p class="artist-genre">Bollywood/Pop</p>
+                        <p class="artist-description">Young and talented playback singer known for his melodious voice and contemporary hits.</p>
                     </div>
                 </div>
                 
                 <div class="artist-card">
                     <div class="artist-image">
-                        <img src="https://images.unsplash.com/photo-1511795411500-9d8c6e3d8a6c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="BTS">
+                        <img src="https://images.ctfassets.net/opz1rk40r4ou/cOCZg13AajyDP2Vc0FxdN/42e69f2ebfe6bfd4f2bfe557a0b62634/Shreya_Ghoshal_performs_at_Jubilee_Stage_m52372.jpg" alt="Shreya Ghoshal">
                     </div>
                     <div class="artist-info">
-                        <h3>BTS</h3>
-                        <p class="artist-genre">K-pop</p>
-                        <p class="artist-description">Global phenomenon known for their music, performances, and connection with fans.</p>
+                        <h3>Shreya Ghoshal</h3>
+                        <p class="artist-genre">Classical/Bollywood</p>
+                        <p class="artist-description">Legendary playback singer with a mesmerizing voice and numerous awards.</p>
                     </div>
                 </div>
                 
                 <div class="artist-card">
                     <div class="artist-image">
-                        <img src="https://images.unsplash.com/photo-1511671681180-f1d8b330bde4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Eminem">
+                        <img src="https://www.koimoi.com/wp-content/new-galleries/2020/06/guru-randhawa-confirms-first-live-show-post-lockdown-001.jpg" alt="Guru Randhawa">
                     </div>
                     <div class="artist-info">
-                        <h3>Eminem</h3>
-                        <p class="artist-genre">Hip Hop</p>
-                        <p class="artist-description">Award-winning rapper known for his technical skill and powerful lyrics.</p>
+                        <h3>Guru Randhawa</h3>
+                        <p class="artist-genre">Punjabi Pop</p>
+                        <p class="artist-description">Popular Punjabi singer and songwriter known for catchy beats and energetic performances.</p>
                     </div>
                 </div>
             </div>
@@ -227,9 +234,9 @@
                                     <label for="ticketType">Ticket Type</label>
                                     <select id="ticketType" name="ticketType" required>
                                         <option value="">Select Ticket Type</option>
-                                        <option value="regular" data-price="99">Regular - $99</option>
-                                        <option value="vip" data-price="199">VIP - $199</option>
-                                        <option value="backstage" data-price="299">Backstage - $299</option>
+                                        <option value="regular" data-price="2999">Regular - ₹2,999</option>
+                                        <option value="vip" data-price="5999">VIP - ₹5,999</option>
+                                        <option value="backstage" data-price="9999">Backstage - ₹9,999</option>
                                     </select>
                                 </div>
                                 
@@ -243,7 +250,7 @@
                                 <div class="price-breakdown">
                                     <div class="price-line">
                                         <span>Ticket Price:</span>
-                                        <span id="ticketPrice">$0</span>
+                                        <span id="ticketPrice">₹0</span>
                                     </div>
                                     <div class="price-line">
                                         <span>Quantity:</span>
@@ -251,7 +258,7 @@
                                     </div>
                                     <div class="price-line total">
                                         <span>Total:</span>
-                                        <span id="totalPrice">$0</span>
+                                        <span id="totalPrice">₹0</span>
                                     </div>
                                 </div>
                             </div>
@@ -344,22 +351,119 @@
 
     </div>
 
+    <!-- Stage Preview Modal -->
+    <div class="stage-preview-modal" id="stagePreviewModal">
+        <div class="modal-overlay" onclick="closeStagePreview()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Festival Stages</h2>
+                <button class="close-btn" onclick="closeStagePreview()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="stages-container">
+                <div class="stage-card active" data-stage="main" onclick="selectStage('main')">
+                    <div class="stage-visual">
+                        <div class="stage-platform main-stage">
+                            <div class="stage-lights">
+                                <div class="light"></div>
+                                <div class="light"></div>
+                                <div class="light"></div>
+                            </div>
+                            <div class="stage-screen"></div>
+                        </div>
+                        <div class="crowd-area">
+                            <div class="crowd-section vip"></div>
+                            <div class="crowd-section general"></div>
+                        </div>
+                    </div>
+                    <div class="stage-info">
+                        <h3>Main Stage</h3>
+                        <p>The heart of the festival featuring headlining acts</p>
+                        <div class="stage-features">
+                            <span class="feature">LED Screens</span>
+                            <span class="feature">Premium Sound</span>
+                            <span class="feature">VIP Area</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage-card" data-stage="underground" onclick="selectStage('underground')">
+                    <div class="stage-visual">
+                        <div class="stage-platform underground-stage">
+                            <div class="stage-lights underground">
+                                <div class="light neon"></div>
+                                <div class="light neon"></div>
+                            </div>
+                        </div>
+                        <div class="crowd-area intimate">
+                            <div class="crowd-section dance-floor"></div>
+                        </div>
+                    </div>
+                    <div class="stage-info">
+                        <h3>Underground Stage</h3>
+                        <p>Intimate setting for electronic and experimental music</p>
+                        <div class="stage-features">
+                            <span class="feature">Neon Lighting</span>
+                            <span class="feature">Bass System</span>
+                            <span class="feature">Dance Floor</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stage-card" data-stage="acoustic" onclick="selectStage('acoustic')">
+                    <div class="stage-visual">
+                        <div class="stage-platform acoustic-stage">
+                            <div class="stage-decoration">
+                                <div class="tree"></div>
+                                <div class="tree"></div>
+                            </div>
+                        </div>
+                        <div class="crowd-area relaxed">
+                            <div class="crowd-section seated"></div>
+                        </div>
+                    </div>
+                    <div class="stage-info">
+                        <h3>Acoustic Corner</h3>
+                        <p>Peaceful area for acoustic performances and chill vibes</p>
+                        <div class="stage-features">
+                            <span class="feature">Natural Setting</span>
+                            <span class="feature">Seated Area</span>
+                            <span class="feature">Intimate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stage-details" id="stageDetails">
+                <div class="stage-lineup">
+                    <h4>Performing Artists</h4>
+                    <div class="artist-list" id="stageArtists">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                <div class="stage-schedule">
+                    <h4>Performance Schedule</h4>
+                    <div class="schedule-list" id="stageSchedule">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section about-section">
-                    <h3>About Music Festival Hub</h3>
-                    <p>Music Festival Hub is your ultimate destination for discovering and booking tickets to the world's most incredible music festivals. We connect music lovers with unforgettable experiences, bringing together diverse artists, passionate fans, and the magic of live music.</p>
-                    <p>From intimate indie gatherings to massive electronic dance festivals, we curate the best events across all genres. Join thousands of festival-goers who trust us to deliver authentic, safe, and extraordinary musical journeys.</p>
-                </div>
                 
                 <div class="footer-section contact-section">
                     <h3>Get In Touch</h3>
                     <div class="contact-info">
                         <p><i class="fas fa-envelope"></i> info@musicfestivalhub.com</p>
-                        <p><i class="fas fa-phone"></i> +1 (555) 123-FEST</p>
-                        <p><i class="fas fa-map-marker-alt"></i> 123 Music Street, Festival City, FC 12345</p>
+                        <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Music Street, Mumbai, Maharashtra 400001</p>
                     </div>
                 </div>
                 
@@ -393,6 +497,7 @@
         </div>
     </footer>
 
+    <script src="auth-manager.js"></script>
     <script src="ticketmaster-events-service.js"></script>
     <script src="script.js"></script>
     

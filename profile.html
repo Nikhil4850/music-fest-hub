@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Music Festival Hub</title>
+    <link rel="stylesheet" href="profile-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="profile-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">Music Festival Hub</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="events.html" class="nav-link">Events</a>
+                <a href="bookings.html" class="nav-link">My Bookings</a>
+                <a href="about.html" class="nav-link">About</a>
+                <div id="authSection">
+                    <a href="profile.html" class="nav-link active">Profile</a>
+                </div>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Video Background -->
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="https://assets.codepen.io/3364143/screen-record.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <!-- Profile Container -->
+    <div class="profile-container">
+        <div class="profile-sidebar">
+            <div class="profile-avatar-section">
+                <div class="profile-avatar" id="profileAvatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <button class="change-avatar-btn" id="changeAvatarBtn">
+                    <i class="fas fa-camera"></i>
+                    Change Photo
+                </button>
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <div class="profile-nav">
+                <button class="profile-nav-item active" data-section="personal">
+                    <i class="fas fa-user"></i>
+                    Personal Info
+                </button>
+                <button class="profile-nav-item" data-section="preferences">
+                    <i class="fas fa-cog"></i>
+                    Preferences
+                </button>
+                <button class="profile-nav-item" data-section="bookings">
+                    <i class="fas fa-ticket-alt"></i>
+                    My Bookings
+                </button>
+                <button class="profile-nav-item" data-section="security">
+                    <i class="fas fa-shield-alt"></i>
+                    Security
+                </button>
+                <button class="profile-nav-item logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <!-- Personal Info Section -->
+            <div class="profile-section active" id="personal">
+                <div class="section-header">
+                    <h2>Personal Information</h2>
+                    <p>Update your personal details and contact information</p>
+                </div>
+                
+                <form class="profile-form" id="personalInfoForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                        <small class="form-note">This email will be used for booking confirmations</small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date of Birth</label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bio">Bio</label>
+                        <textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself and your music preferences..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <select id="location" name="location">
+                            <option value="">Select your city</option>
+                            <option value="mumbai">Mumbai</option>
+                            <option value="delhi">Delhi</option>
+                            <option value="bangalore">Bangalore</option>
+                            <option value="pune">Pune</option>
+                            <option value="hyderabad">Hyderabad</option>
+                            <option value="chennai">Chennai</option>
+                            <option value="kolkata">Kolkata</option>
+                            <option value="ahmedabad">Ahmedabad</option>
+                            <option value="goa">Goa</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="cta-button primary">
+                        <span>Save Changes</span>
+                        <div class="button-glow"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Preferences Section -->
+            <div class="profile-section" id="preferences">
+                <div class="section-header">
+                    <h2>Preferences</h2>
+                    <p>Customize your experience and notification settings</p>
+                </div>
+                
+                <form class="profile-form" id="preferencesForm">
+                    <div class="preference-group">
+                        <h3>Music Preferences</h3>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="edm">
+                                <span class="checkmark"></span>
+                                EDM/Electronic
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="rock">
+                                <span class="checkmark"></span>
+                                Rock/Metal
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="indie">
+                                <span class="checkmark"></span>
+                                Indie/Alternative
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="hip-hop">
+                                <span class="checkmark"></span>
+                                Hip-Hop/Rap
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="pop">
+                                <span class="checkmark"></span>
+                                Pop/Mainstream
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="jazz">
+                                <span class="checkmark"></span>
+                                Jazz/Blues
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="folk">
+                                <span class="checkmark"></span>
+                                Folk/World
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="genres" value="classical">
+                                <span class="checkmark"></span>
+                                Classical
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="preference-group">
+                        <h3>Notifications</h3>
+                        <div class="toggle-options">
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="emailNotifications" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="toggle-info">
+                                    <h4>Email Notifications</h4>
+                                    <p>Receive updates about new events and booking confirmations</p>
+                                </div>
+                            </div>
+                            
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="smsNotifications">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="toggle-info">
+                                    <h4>SMS Notifications</h4>
+                                    <p>Get text messages for important booking updates</p>
+                                </div>
+                            </div>
+                            
+                            <div class="toggle-item">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="eventRecommendations" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="toggle-info">
+                                    <h4>Event Recommendations</h4>
+                                    <p>Receive personalized event suggestions based on your preferences</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="cta-button primary">
+                        <span>Save Preferences</span>
+                        <div class="button-glow"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Bookings Section -->
+            <div class="profile-section" id="bookings">
+                <div class="section-header">
+                    <h2>My Bookings</h2>
+                    <p>View and manage your festival tickets</p>
+                </div>
+                
+                <div class="bookings-container" id="bookingsContainer">
+                    <!-- Bookings will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="profile-section" id="security">
+                <div class="section-header">
+                    <h2>Security Settings</h2>
+                    <p>Manage your password and account security</p>
+                </div>
+                
+                <form class="profile-form" id="securityForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="currentPassword" name="currentPassword" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="newPassword" name="newPassword" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('newPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="form-note">Password must be at least 6 characters long</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Confirm New Password</label>
+                        <div class="password-input-container">
+                            <input type="password" id="confirmNewPassword" name="confirmNewPassword" required>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmNewPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="cta-button primary">
+                        <span>Update Password</span>
+                        <div class="button-glow"></div>
+                    </button>
+                </form>
+                
+                <div class="security-actions">
+                    <h3>Account Actions</h3>
+                    <button class="cta-button secondary" id="deleteAccountBtn">
+                        <span>Delete Account</span>
+                        <div class="button-glow"></div>
+                    </button>
+                    <small class="form-note">This action cannot be undone. All your data will be permanently deleted.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div class="message-container" id="messageContainer"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                
+                <div class="footer-section contact-section">
+                    <h3>Get In Touch</h3>
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i> info@musicfestivalhub.com</p>
+                        <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Music Street, Mumbai, Maharashtra 400001</p>
+                    </div>
+                </div>
+                
+                <div class="footer-section social-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="copyright"> 2024 Music Festival Hub. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="profile-script.js"></script>
+</body>
+</html>

@@ -2,7 +2,19 @@
 
 class ApiService {
     constructor() {
-        this.baseUrl = 'http://localhost:5000/api';
+        // Detect if we're in production or development
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        
+        if (isProduction) {
+            // For production, use relative URLs or your deployed backend URL
+            this.baseUrl = '/api'; // This will use the same domain as your frontend
+            this.useMockData = true; // Use mock data until backend is deployed
+        } else {
+            // For local development
+            this.baseUrl = 'http://localhost:5000/api';
+            this.useMockData = false;
+        }
+        
         this.token = this.getToken();
     }
 
@@ -53,6 +65,26 @@ class ApiService {
 
     // Authentication endpoints
     async register(userData) {
+        if (this.useMockData) {
+            // Mock registration for production deployment
+            await this.delay(1500);
+            const mockToken = 'mock_token_' + Date.now();
+            this.setToken(mockToken);
+            return {
+                success: true,
+                message: 'Registration successful',
+                data: {
+                    token: mockToken,
+                    user: {
+                        id: Date.now(),
+                        name: userData.name,
+                        email: userData.email,
+                        userType: userData.userType
+                    }
+                }
+            };
+        }
+
         const response = await this.request('/auth/register', {
             method: 'POST',
             body: JSON.stringify(userData)
@@ -66,6 +98,26 @@ class ApiService {
     }
 
     async login(credentials) {
+        if (this.useMockData) {
+            // Mock login for production deployment
+            await this.delay(1200);
+            const mockToken = 'mock_token_' + Date.now();
+            this.setToken(mockToken);
+            return {
+                success: true,
+                message: 'Login successful',
+                data: {
+                    token: mockToken,
+                    user: {
+                        id: Date.now(),
+                        name: 'Demo User',
+                        email: credentials.email,
+                        userType: 'normal'
+                    }
+                }
+            };
+        }
+
         const response = await this.request('/auth/login', {
             method: 'POST',
             body: JSON.stringify(credentials)
@@ -94,13 +146,93 @@ class ApiService {
 
     // User endpoints
     async getUserProfile() {
+        if (this.useMockData) {
+            await this.delay(800);
+            return {
+                success: true,
+                data: {
+                    user: {
+                        id: 'user123',
+                        name: 'Demo User',
+                        email: 'demo@example.com',
+                        firstName: 'Demo',
+                        lastName: 'User',
+                        phone: '+91 9876543210',
+                        dateOfBirth: '1990-01-01',
+                        bio: 'Music enthusiast and festival lover',
+                        location: 'mumbai',
+                        avatar: null,
+                        preferences: {
+                            notifications: {
+                                emailNotifications: true,
+                                smsNotifications: false,
+                                eventRecommendations: true
+                            },
+                            genres: ['edm', 'rock', 'indie']
+                        }
+                    }
+                }
+            };
+        }
         return await this.request('/users/profile');
     }
 
     async updateUserProfile(profileData) {
+        if (this.useMockData) {
+            await this.delay(1000);
+            return {
+                success: true,
+                message: 'Profile updated successfully',
+                data: {
+                    user: { ...profileData, id: 'user123' }
+                }
+            };
+        }
         return await this.request('/users/profile', {
             method: 'PUT',
             body: JSON.stringify(profileData)
+        });
+    }
+
+    async updateUserAvatar(avatar) {
+        if (this.useMockData) {
+            await this.delay(800);
+            return {
+                success: true,
+                message: 'Avatar updated successfully',
+                data: { avatar }
+            };
+        }
+        return await this.request('/users/avatar', {
+            method: 'PUT',
+            body: JSON.stringify({ avatar })
+        });
+    }
+
+    async updateUserPassword(passwordData) {
+        if (this.useMockData) {
+            await this.delay(1200);
+            return {
+                success: true,
+                message: 'Password updated successfully'
+            };
+        }
+        return await this.request('/users/password', {
+            method: 'PUT',
+            body: JSON.stringify(passwordData)
+        });
+    }
+
+    async deleteUserAccount() {
+        if (this.useMockData) {
+            await this.delay(1500);
+            return {
+                success: true,
+                message: 'Account deleted successfully'
+            };
+        }
+        return await this.request('/users/account', {
+            method: 'DELETE'
         });
     }
 
@@ -149,6 +281,27 @@ class ApiService {
 
     // Booking endpoints
     async createBooking(bookingData) {
+        if (this.useMockData) {
+            // Mock booking for production deployment
+            await this.delay(2000);
+            return {
+                success: true,
+                message: 'Booking created successfully',
+                data: {
+                    booking: {
+                        id: 'BKG' + Date.now(),
+                        event: bookingData.event,
+                        quantity: bookingData.quantity,
+                        totalPrice: bookingData.totalPrice || 2499,
+                        paymentMethod: bookingData.paymentMethod,
+                        bookingStatus: 'confirmed',
+                        ticketIds: ['TKT' + Date.now()],
+                        createdAt: new Date().toISOString()
+                    }
+                }
+            };
+        }
+
         return await this.request('/bookings', {
             method: 'POST',
             body: JSON.stringify(bookingData)

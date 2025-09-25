@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Music Festival Hub</title>
     <link rel="stylesheet" href="login-styles.css">
-    <script src="api-service.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -16,11 +15,15 @@
             <div class="nav-logo">
                 <span class="logo-text">Music Festival Hub</span>
             </div>
-            <ul class="nav-menu">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li><a href="events.html" class="nav-link">Events</a></li>
-                <li><a href="#my-bookings" class="nav-link">My Bookings</a></li>
-            </ul>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="events.html" class="nav-link">Events</a>
+                <a href="bookings.html" class="nav-link">My Bookings</a>
+                <a href="about.html" class="nav-link">About</a>
+                <div id="authSection">
+                    <a href="login.html" class="nav-link login-btn active">Login</a>
+                </div>
+            </div>
             <div class="nav-toggle">
                 <span></span>
                 <span></span>
@@ -79,6 +82,9 @@
             
             <form class="auth-form register-form" id="registerForm">
                 <h2>Create Account</h2>
+                
+                <div class="manual-registration-section">
+                
                 <div class="form-group">
                     <label for="registerName">Full Name</label>
                     <input type="text" id="registerName" name="name" required>
@@ -144,6 +150,7 @@
                     <span>Create Account</span>
                     <div class="button-glow"></div>
                 </button>
+                </div>
             </form>
         </div>
     </div>
@@ -268,6 +275,281 @@
                         transform: translateX(-50%) translateY(0);
                     }
                 }
+
+
+
+                .divider {
+                    display: flex;
+                    align-items: center;
+                    margin: 1.25rem 0;
+                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 0.85rem;
+                    width: 100%;
+                }
+
+                .divider::before,
+                .divider::after {
+                    content: '';
+                    flex: 1;
+                    height: 1px;
+                    background: rgba(255, 255, 255, 0.2);
+                }
+
+                .divider span {
+                    padding: 0 1rem;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 20px;
+                    padding: 0.25rem 1rem;
+                    white-space: nowrap;
+                }
+
+                /* User Type Selection Modal */
+                .user-type-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    backdrop-filter: blur(10px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                }
+
+                .user-type-modal.active {
+                    opacity: 1;
+                    visibility: visible;
+                }
+
+                .user-type-modal-content {
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(20px);
+                    border-radius: 20px;
+                    padding: 2rem;
+                    max-width: 500px;
+                    width: 90%;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    transform: translateY(20px);
+                    transition: transform 0.3s ease;
+                }
+
+                .user-type-modal.active .user-type-modal-content {
+                    transform: translateY(0);
+                }
+
+                .user-type-modal h3 {
+                    color: #333;
+                    margin-bottom: 1rem;
+                    text-align: center;
+                    font-size: 1.5rem;
+                }
+
+                .user-type-modal p {
+                    color: #666;
+                    text-align: center;
+                    margin-bottom: 2rem;
+                }
+
+                .google-user-type-selection {
+                    display: flex;
+                    gap: 1rem;
+                    margin-bottom: 2rem;
+                }
+
+                .google-user-type-option {
+                    flex: 1;
+                }
+
+                .google-user-type-card {
+                    display: block;
+                    padding: 1.5rem;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 12px;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    background: #fff;
+                }
+
+                .google-user-type-card:hover {
+                    border-color: #667eea;
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+                }
+
+                .google-user-type-card.selected {
+                    border-color: #667eea;
+                    background: rgba(102, 126, 234, 0.1);
+                }
+
+                .google-user-type-card .user-type-icon {
+                    font-size: 2rem;
+                    color: #667eea;
+                    margin-bottom: 0.5rem;
+                }
+
+                .google-user-type-card h4 {
+                    color: #333;
+                    margin-bottom: 0.25rem;
+                }
+
+                .google-user-type-card p {
+                    color: #666;
+                    font-size: 0.9rem;
+                    margin: 0;
+                }
+
+                .modal-actions {
+                    display: flex;
+                    gap: 1rem;
+                    justify-content: center;
+                }
+
+                .modal-btn {
+                    padding: 0.75rem 2rem;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                .modal-btn.primary {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                }
+
+                .modal-btn.primary:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                }
+
+                .modal-btn.secondary {
+                    background: #f5f5f5;
+                    color: #666;
+                }
+
+                .modal-btn.secondary:hover {
+                    background: #e0e0e0;
+                }
+
+                /* Registration Form Layout Fixes */
+                .register-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0;
+                }
+
+                .register-form h2 {
+                    margin-bottom: 1.5rem;
+                    text-align: center;
+                }
+
+                .manual-registration-section {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .register-form .form-group {
+                    margin-bottom: 1rem;
+                }
+
+                .register-form .user-type-selection {
+                    display: flex;
+                    gap: 0.75rem;
+                    margin-top: 0.5rem;
+                }
+
+                .register-form .user-type-option {
+                    flex: 1;
+                }
+
+                .register-form .user-type-card {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 1rem;
+                    border: 2px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.05);
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    text-align: center;
+                    min-height: 100px;
+                }
+
+                .register-form .user-type-card:hover {
+                    border-color: #667eea;
+                    background: rgba(102, 126, 234, 0.1);
+                    transform: translateY(-2px);
+                }
+
+                .register-form .user-type-option input[type="radio"]:checked + .user-type-card {
+                    border-color: #667eea;
+                    background: rgba(102, 126, 234, 0.15);
+                }
+
+                .register-form .user-type-icon {
+                    font-size: 1.5rem;
+                    color: #667eea;
+                    margin-bottom: 0.5rem;
+                }
+
+                .register-form .user-type-info h4 {
+                    color: #ffffff;
+                    font-size: 0.9rem;
+                    margin-bottom: 0.25rem;
+                    font-weight: 600;
+                }
+
+                .register-form .user-type-info p {
+                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 0.75rem;
+                    margin: 0;
+                    line-height: 1.3;
+                }
+
+                .register-form .cta-button {
+                    margin-top: 1.5rem;
+                    margin-bottom: 1rem;
+                    align-self: stretch;
+                }
+
+                .register-form .divider {
+                    margin: 1rem 0;
+                }
+
+                .register-form .google-signin-section {
+                    margin-top: 0;
+                    margin-bottom: 0;
+                    width: 100%;
+                }
+
+                @media (max-width: 768px) {
+                    .register-form .user-type-selection {
+                        flex-direction: column;
+                        gap: 0.5rem;
+                    }
+                    
+                    .register-form .user-type-card {
+                        flex-direction: row;
+                        text-align: left;
+                        min-height: auto;
+                        padding: 0.75rem;
+                    }
+                    
+                    .register-form .user-type-icon {
+                        margin-bottom: 0;
+                        margin-right: 0.75rem;
+                        font-size: 1.25rem;
+                    }
+                }
             `;
             
             if (!document.querySelector('style[data-success-styles]')) {
@@ -283,6 +565,108 @@
                     successDiv.remove();
                 }
             }, 3000);
+        }
+
+        // Global variables for Google Sign-In
+        let googleUserData = null;
+
+        // Google Sign-In handler
+        function handleGoogleSignIn() {
+            // Show loading state
+            const googleBtn = document.getElementById('googleSignInBtn');
+            const originalText = googleBtn.innerHTML;
+            googleBtn.innerHTML = '<div class="google-icon"><i class="fas fa-spinner fa-spin"></i></div><span>Connecting...</span>';
+            googleBtn.disabled = true;
+
+            // Simulate Google OAuth flow (in production, this would use Google's API)
+            setTimeout(() => {
+                // Mock Google user data
+                googleUserData = {
+                    id: 'google_' + Date.now(),
+                    name: 'Google User',
+                    email: 'user@gmail.com',
+                    picture: 'https://via.placeholder.com/100',
+                    provider: 'google'
+                };
+
+                // Reset button
+                googleBtn.innerHTML = originalText;
+                googleBtn.disabled = false;
+
+                // Show user type selection modal
+                showUserTypeModal();
+            }, 1500);
+        }
+
+        // Show user type selection modal
+        function showUserTypeModal() {
+            const modal = document.getElementById('userTypeModal');
+            modal.classList.add('active');
+        }
+
+        // Close user type selection modal
+        function closeUserTypeModal() {
+            const modal = document.getElementById('userTypeModal');
+            modal.classList.remove('active');
+            
+            // Reset selections
+            document.querySelectorAll('.google-user-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('confirmUserTypeBtn').disabled = true;
+            googleUserData = null;
+        }
+
+        // Complete Google Sign-Up
+        function completeGoogleSignUp() {
+            const selectedCard = document.querySelector('.google-user-type-card.selected');
+            if (!selectedCard || !googleUserData) return;
+
+            const userType = selectedCard.getAttribute('data-type');
+            
+            // Show loading state
+            const confirmBtn = document.getElementById('confirmUserTypeBtn');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = 'Creating Account...';
+            confirmBtn.disabled = true;
+
+            setTimeout(() => {
+                // Create user data
+                const userData = {
+                    id: googleUserData.id,
+                    name: googleUserData.name,
+                    email: googleUserData.email,
+                    userType: userType,
+                    provider: 'google',
+                    avatar: googleUserData.picture,
+                    isLoggedIn: true
+                };
+
+                // Store user data in localStorage
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                // Update auth state
+                if (window.authManager) {
+                    window.authManager.login(userData);
+                }
+                
+                // Dispatch storage event for cross-tab sync
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'currentUser',
+                    newValue: JSON.stringify(userData)
+                }));
+
+                // Close modal
+                closeUserTypeModal();
+
+                // Show success message
+                showSuccessMessage(`Welcome ${userData.name}! Your ${userType} account has been created successfully.`);
+
+                // Redirect to home page
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }, 1200);
         }
 
         // Login page specific JavaScript
@@ -326,32 +710,39 @@
                     loginBtn.querySelector('span').textContent = 'Signing In...';
                     loginBtn.disabled = true;
                     
-                    // Call API for login
-                    apiService.login({
-                        email: email,
-                        password: password
-                    }).then(response => {
-                        if (response.success) {
-                            // Reset button
-                            loginBtn.querySelector('span').textContent = originalText;
-                            loginBtn.disabled = false;
-                            
-                            // Show success message
-                            showSuccessMessage(`Welcome back! Login successful.`);
-                            
-                            // Redirect to home page
-                            setTimeout(() => {
-                                window.location.href = 'index.html';
-                            }, 1500);
-                        }
-                    }).catch(error => {
+                    // Simple login simulation for deployed website
+                    setTimeout(() => {
                         // Reset button
                         loginBtn.querySelector('span').textContent = originalText;
                         loginBtn.disabled = false;
                         
-                        // Show error message
-                        showError(document.getElementById('loginEmail'), error.message || 'Login failed. Please check your credentials.');
-                    });
+                        // Show success message
+                        showSuccessMessage('Welcome back! Login successful.');
+                        
+                        // Store user data in localStorage
+                        const userData = {
+                            email: email,
+                            name: email.split('@')[0],
+                            isLoggedIn: true
+                        };
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        
+                        // Update auth state
+                        if (window.authManager) {
+                            window.authManager.login(userData);
+                        }
+                        
+                        // Dispatch storage event for cross-tab sync
+                        window.dispatchEvent(new StorageEvent('storage', {
+                            key: 'currentUser',
+                            newValue: JSON.stringify(userData)
+                        }));
+                        
+                        // Redirect to home page
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    }, 1200);
                 }
             });
             
@@ -411,38 +802,61 @@
                 registerBtn.disabled = true;
                 registerBtn.classList.add('loading');
                 
-                // Call API for registration
-                apiService.register({
-                    name: name,
-                    email: email,
-                    password: password,
-                    userType: userType
-                }).then(response => {
-                    if (response.success) {
-                        // Reset form
-                        registerForm.reset();
-                        
-                        // Reset button
-                        registerBtn.querySelector('span').textContent = originalText;
-                        registerBtn.disabled = false;
-                        registerBtn.classList.remove('loading');
-                        
-                        // Show success message
-                        showSuccessMessage(`Welcome ${name}! Your ${userType} account has been created successfully.`);
-                        
-                        // Redirect after success message
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 2000);
-                    }
-                }).catch(error => {
+                // Simple registration simulation for deployed website
+                setTimeout(() => {
+                    // Reset form
+                    registerForm.reset();
+                    
                     // Reset button
                     registerBtn.querySelector('span').textContent = originalText;
                     registerBtn.disabled = false;
                     registerBtn.classList.remove('loading');
                     
-                    // Show error message
-                    showError(document.getElementById('registerEmail'), error.message || 'Registration failed. Please try again.');
+                    // Show success message
+                    showSuccessMessage(`Welcome ${name}! Your ${userType} account has been created successfully.`);
+                    
+                    // Store user data in localStorage
+                    const userData = {
+                        email: email,
+                        name: name,
+                        userType: userType,
+                        isLoggedIn: true
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                    
+                    // Update auth state
+                    if (window.authManager) {
+                        window.authManager.login(userData);
+                    }
+                    
+                    // Dispatch storage event for cross-tab sync
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: 'currentUser',
+                        newValue: JSON.stringify(userData)
+                    }));
+                    
+                    // Redirect after success message
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                }, 1500);
+            });
+            
+            // Google Sign-In functionality
+            const googleSignInBtn = document.getElementById('googleSignInBtn');
+            if (googleSignInBtn) {
+                googleSignInBtn.addEventListener('click', handleGoogleSignIn);
+            }
+            
+            // User type selection for Google Sign-In
+            const userTypeCards = document.querySelectorAll('.google-user-type-card');
+            userTypeCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    userTypeCards.forEach(c => c.classList.remove('selected'));
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
                 });
             });
             
@@ -469,5 +883,61 @@
             }
         });
     </script>
+    
+    <div>
+        <!-- User Type Selection Modal -->
+        <div class="user-type-modal" id="userTypeModal">
+            <div class="user-type-modal-content">
+                
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                
+                <div class="footer-section contact-section">
+                    <h3>Get In Touch</h3>
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i> info@musicfestivalhub.com</p>
+                        <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Music Street, Mumbai, Maharashtra 400001</p>
+                    </div>
+                </div>
+                
+                <div class="footer-section social-section">
+                    <h3>Follow Us</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="copyright"> 2024 Music Festival Hub. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="auth-manager.js"></script>
 </body>
 </html>

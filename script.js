@@ -1,5 +1,104 @@
 // Music Festival Hub - Complete Ticket Booking Platform
 
+// Stage Preview Data
+const stageData = {
+    main: {
+        name: 'Main Stage',
+        artists: ['Nucleya', 'Divine', 'Ritviz', 'Arjun Kanungo'],
+        schedule: [
+            { time: '6:00 PM', artist: 'Arjun Kanungo' },
+            { time: '7:30 PM', artist: 'Ritviz' },
+            { time: '9:00 PM', artist: 'Divine' },
+            { time: '10:30 PM', artist: 'Nucleya' }
+        ]
+    },
+    underground: {
+        name: 'Underground Stage',
+        artists: ['Anish Sood', 'Sartek', 'Kohra', 'Sandunes'],
+        schedule: [
+            { time: '7:00 PM', artist: 'Sandunes' },
+            { time: '8:30 PM', artist: 'Kohra' },
+            { time: '10:00 PM', artist: 'Sartek' },
+            { time: '11:30 PM', artist: 'Anish Sood' }
+        ]
+    },
+    acoustic: {
+        name: 'Acoustic Corner',
+        artists: ['Prateek Kuhad', 'Ankur Tewari', 'The Local Train', 'When Chai Met Toast'],
+        schedule: [
+            { time: '5:00 PM', artist: 'When Chai Met Toast' },
+            { time: '6:30 PM', artist: 'The Local Train' },
+            { time: '8:00 PM', artist: 'Ankur Tewari' },
+            { time: '9:30 PM', artist: 'Prateek Kuhad' }
+        ]
+    }
+};
+
+// Stage Preview Functions
+function openStagePreview() {
+    const modal = document.getElementById('stagePreviewModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Initialize with main stage selected
+        selectStage('main');
+    }
+}
+
+function closeStagePreview() {
+    const modal = document.getElementById('stagePreviewModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function selectStage(stageId) {
+    // Update active stage card
+    document.querySelectorAll('.stage-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    const stageCard = document.querySelector(`[data-stage="${stageId}"]`);
+    if (stageCard) {
+        stageCard.classList.add('active');
+    }
+    
+    // Update stage details
+    const stage = stageData[stageId];
+    if (!stage) return;
+    
+    const artistsContainer = document.getElementById('stageArtists');
+    const scheduleContainer = document.getElementById('stageSchedule');
+    
+    if (artistsContainer) {
+        // Update artists
+        artistsContainer.innerHTML = stage.artists.map(artist => 
+            `<div class="artist-item">
+                <i class="fas fa-microphone"></i>
+                <span>${artist}</span>
+            </div>`
+        ).join('');
+    }
+    
+    if (scheduleContainer) {
+        // Update schedule
+        scheduleContainer.innerHTML = stage.schedule.map(item => 
+            `<div class="schedule-item">
+                <span class="time">${item.time}</span>
+                <span class="artist">${item.artist}</span>
+            </div>`
+        ).join('');
+    }
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeStagePreview();
+    }
+});
+
 // Application State
 class AppState {
     constructor() {
